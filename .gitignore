@@ -2,3 +2,6 @@
 .vscode/
 
 /venv/
+/checkpoints/
+/wandb/
+/data/
