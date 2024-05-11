@@ -1,0 +1,70 @@
+trainer:
+  model_config:
+    _target_: TestModel
+    update_net_channel_dims:
+    - 64
+    - 32
+    - 32
+    - 16
+    verbose: false
+  train_dataset_config:
+    _target_: TestDataset
+    entity_name: null
+    dataset_path: null
+    verbose: false
+  val_dataset_config:
+    _target_: TestDataset
+    entity_name: null
+    dataset_path: null
+    verbose: false
+  test_dataset_config:
+    _target_: TestDataset
+    entity_name: null
+    dataset_path: null
+    verbose: false
+  dataloader_config:
+    _target_: torch.utils.data.dataloader.DataLoader
+    shuffle: false
+    sampler: null
+    batch_sampler: null
+    num_workers: 0
+    collate_fn: null
+    pin_memory: false
+    drop_last: false
+    timeout: 0
+    worker_init_fn: null
+    multiprocessing_context: null
+    generator: null
+  optimizer_config:
+    _target_: torch.optim.adam.Adam
+    lr: 0.002
+    betas:
+    - 0.9
+    - 0.999
+    eps: 1.0e-08
+    weight_decay: 0
+    amsgrad: false
+  scheduler_config:
+    _target_: torch.optim.lr_scheduler.ExponentialLR
+    gamma: 0.9999
+    last_epoch: -1
+  logging_config:
+    checkpoint_path: checkpoints
+  _target_: src.base.base_torch_model.BaseTorchTrainer
+  name: DefaultTrainer
+  pretrained_path: null
+  visualize_output: true
+  use_cuda: false
+  device_id: 0
+  early_stoppage: false
+  loss_threshold: 0.005
+  batch_size: 8
+  epochs: 51
+  checkpoint_interval: 10
+  half_precision: false
+  clip_gradients: false
+  torch_seed: null
+  use_dataset: true
+  use_model: true
+  wandb: false
+  verbose: true
