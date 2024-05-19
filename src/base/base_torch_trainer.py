@@ -142,6 +142,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
     ) -> BaseTorchTrainer:
         _config = load_config(config_path)
         _config = merge(OmegaConf.create({"trainer": config}), _config)
+        print(_config)
         _config["trainer"]["config"] = _config
         _config["trainer"]["_target_"] = fullname(cls)
         return cls(_config.trainer)

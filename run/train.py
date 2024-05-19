@@ -6,7 +6,7 @@ base_data_path = "C:/Users/cedri/Desktop/Code/ETH/cil-road-segmentation/data"
 
 if __name__ == "__main__":
 
-    dataset = 'test'
+    dataset = 'kaeggle'
     dataset_path = "{}/{}".format(base_data_path, dataset)
 
     # if loading pretrained model
@@ -20,8 +20,9 @@ if __name__ == "__main__":
         config={
             # "pretrained_path": pretrained_path,
             "use_cuda": torch.cuda.is_available(),
-            "wandb": True,
-            # "train_dataset_config": {"dataset_path": dataset_path},
+            "wandb": False,
+            'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train")},
+            'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val")},
         }
     )
     ct.train()
