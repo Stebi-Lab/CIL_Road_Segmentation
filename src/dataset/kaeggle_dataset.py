@@ -74,8 +74,9 @@ class KaeggleDataset(BaseTorchDataset):
 
     def to_device(self, device):
         self.device = device
-        self.data = [t.to(device) for t in self.data]
-        self.targets = [t.to(device) for t in self.targets]
+        if self.preloadAll:
+            self.data = [t.to(device) for t in self.data]
+            self.targets = [t.to(device) for t in self.targets]
 
     def __len__(self):
         return self.num_samples

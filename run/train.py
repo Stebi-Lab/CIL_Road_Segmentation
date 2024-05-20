@@ -21,7 +21,7 @@ if __name__ == "__main__":
             # "pretrained_path": pretrained_path,
             "use_cuda": torch.cuda.is_available(),
             "wandb": False,
-            'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train"), "preload_all": True},
+            'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train"), "preload_all": False},
             'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val"), "preload_all": True},
         }
     )
