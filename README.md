@@ -14,7 +14,7 @@ Depending on your setup, you might have to run the setup.py script after every c
 
 If you want CUDA, first run this line otherwise skip
 ```
-pip install torch==2.3.0 torchvision~=0.16 --index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.3.0 --index-url https://download.pytorch.org/whl/cu118
 ```
 
 Run following to setup the project

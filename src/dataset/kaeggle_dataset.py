@@ -26,6 +26,15 @@ class KaeggleDataset(BaseTorchDataset):
         self.targets = []
         self.data = []
         self.num_samples = 0
+        self.sample_transforms = transforms.Compose([
+            # transforms.Resize((256, 256)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+        self.label_transforms = transforms.Compose([
+            # transforms.Resize((256, 256)),
+            transforms.ToTensor(),
+        ])
         if self.dataset_path is not None:
             imgs_path = self.dataset_path + "/images"
             labels_path = self.dataset_path + "/labels"
@@ -44,19 +53,10 @@ class KaeggleDataset(BaseTorchDataset):
                 if len(labels) != num_samples: raise Exception("Number of labels does not match number of samples")
                 if self.preloadAll:
                     for image in labels:
-                        self.targets.append(self.load_single_img(labels_path + "/" + image))
+                        self.targets.append(self.load_single_img_label(labels_path + "/" + image))
                 else:
                     self.targets = [labels_path + "/" + file for file in labels]
 
-            self.sample_transforms = transforms.Compose([
-                # transforms.Resize((256, 256)),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-            ])
-            self.label_transforms = transforms.Compose([
-                # transforms.Resize((256, 256)),
-                transforms.ToTensor(),
-            ])
             self.num_samples = num_samples
 
         if self.verbose:
@@ -74,8 +74,8 @@ class KaeggleDataset(BaseTorchDataset):
 
     def to_device(self, device):
         self.device = device
-        # self.data = [torch.from_numpy(t) for t in self.data]
-        # self.targets = [torch.from_numpy(t).long() for t in self.targets]
+        self.data = [t.to(device) for t in self.data]
+        self.targets = [t.to(device) for t in self.targets]
 
     def __len__(self):
         return self.num_samples
