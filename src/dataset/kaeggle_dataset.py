@@ -23,6 +23,7 @@ class KaeggleDataset(BaseTorchDataset):
         self.dataset_path = self.config["dataset_path"] if "dataset_path" in self.config.keys() else None
         self.preloadAll = self.config["preload_all"] if "preload_all" in self.config.keys() and self.config[
             "preload_all"] is not None else False
+        self.device = 'cpu'
         self.targets = []
         self.data = []
         self.num_samples = 0
@@ -65,7 +66,6 @@ class KaeggleDataset(BaseTorchDataset):
                 print(f"with shape {self.data[0].shape} and labels with shape {self.targets[0].shape}")
         self.half_precision = self.config["half_precision"] if "half_precision" in self.config.keys() and self.config[
             "half_precision"] is not None else False
-        self.device = 'cpu'
 
         # if self.half_precision:
         #     self.data = [s.astype(np.float16) for s in self.data]
@@ -86,14 +86,13 @@ class KaeggleDataset(BaseTorchDataset):
         return self.load_single(idx)
 
     def load_single(self, idx):
-        return self.load_single_img(self.data[idx]), self.load_single_img_label(self.targets[idx])
+        return self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device)
 
     def load_single_img(self, file_path):
         image = Image.open(file_path).convert("RGB")
 
         if self.sample_transforms:
             image = self.sample_transforms(image)
-
         return image
 
     def load_single_img_label(self, file_path):
@@ -101,5 +100,4 @@ class KaeggleDataset(BaseTorchDataset):
 
         if self.label_transforms:
             image = self.label_transforms(image)
-
         return image

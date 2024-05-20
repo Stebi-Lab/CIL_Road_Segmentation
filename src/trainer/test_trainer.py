@@ -144,6 +144,9 @@ class KeaggleTrainer(BaseTorchTrainer):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
         with tqdm(self.train_dataloader) as pbar:
             for (inputs, labels) in pbar:
+                # inputs.to(self.device)
+                # labels.to(self.device)
+
                 pbar.set_description(f"Epoch {epoch}")
 
                 if self.half_precision:
@@ -158,21 +161,23 @@ class KeaggleTrainer(BaseTorchTrainer):
                 #     output["post_batch"].append(out.detach().cpu().numpy())
                 output["total_metrics"].append(metrics)
                 output["total_loss"].append(loss)
-                pbar.set_postfix(loss=loss.item())
-                # TODO maybe log individual steps with running loss
+                with torch.no_grad():
+                    output["loss"] = torch.mean(torch.stack(output["total_loss"]))
+                    pbar.set_postfix(loss=loss.item(), total_loss=output["loss"].item())
 
             for metric in output["total_metrics"][0]:
                 output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.train_dataset)
             output["loss"] = torch.mean(torch.stack(output["total_loss"]))
-            pbar.set_postfix(epoch_loss=output["loss"])
             return output
 
     def val_iter(self, batch_size=32, epoch=0):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
         with torch.no_grad():
             with tqdm(self.val_dataloader) as pbar:
-
                 for inputs, labels in pbar:
+                    # inputs.to(self.device)
+                    # labels.to(self.device)
+
                     pbar.set_description(f"Epoch {epoch} Validation")
 
                     if self.half_precision:
@@ -187,13 +192,12 @@ class KeaggleTrainer(BaseTorchTrainer):
                     #     output["post_batch"].append(out.detach().cpu().numpy())
                     output["total_metrics"].append(metrics)
                     output["total_loss"].append(loss)
-                    pbar.set_postfix(val_loss=loss.item())
-                    # TODO maybe log individual steps with running loss
+                    output["loss"] = torch.mean(torch.stack(output["total_loss"]))
+                    pbar.set_postfix(val_loss=loss.item(), total_val_loss=output["loss"].item())
 
                 for metric in output["total_metrics"][0]:
                     output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.val_dataset)
                 output["loss"] = torch.mean(torch.stack(output["total_loss"]))
-                pbar.set_postfix(epochval__loss=output["loss"])
                 return output
 
     def test_iter(self, batch_size=32, iteration=0):
