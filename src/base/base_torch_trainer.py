@@ -368,7 +368,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def train_iter(
-            self, bar, batch_size: int, iteration: Optional[int] = None
+            self, batch_size: int, iteration: Optional[int] = None
     ) -> Dict[Any, Any]:
         """
             Training iteration, specify learning process here
@@ -376,7 +376,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def val_iter(
-            self, bar, batch_size: int, iteration: Optional[int] = None
+            self, batch_size: int, iteration: Optional[int] = None
     ) -> Dict[Any, Any]:
         """
             Validation iteration, specify validation process here
@@ -384,7 +384,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def test_iter(
-            self, bar, batch_size: int, iteration: Optional[int] = None
+            self, batch_size: int, iteration: Optional[int] = None
     ) -> Dict[Any, Any]:
         """
             Test iteration, specify testing process here
@@ -428,25 +428,20 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         self.pre_train()
         self.setup_logging_and_checkpoints()
         self.setup_dataloader()
-        bar = tqdm.tqdm(np.arange(self.epochs))
-        for i in bar:
+        for i in range(self.epochs):
             self.pre_train_iter()
-            output = self.train_iter(bar, self.batch_size, i)
+            output = self.train_iter(self.batch_size, i)
             self.post_train_iter(output)
             metrics = output.get("metrics", {})
             loss = output["loss"]
 
             self.pre_val_iter()
-            val_output = self.val_iter(bar, self.batch_size, i)
+            val_output = self.val_iter(self.batch_size, i)
             self.post_val_iter(val_output)
             val_metrics = val_output.get("metrics", {})
             val_loss = val_output["loss"]
 
             self.log_epoch(metrics, val_metrics, i)
-
-            description = "--".join(["{}:{}".format(k, metrics[k]) for k in metrics])
-            description += "--".join(["{}:{}".format(k, metrics[k]) for k in val_metrics])
-            bar.set_description(description)
 
             if i % self.checkpoint_interval == 0:
                 if self.visualize_output:

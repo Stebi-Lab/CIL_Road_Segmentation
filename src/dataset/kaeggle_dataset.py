@@ -3,7 +3,9 @@ from typing import Any, Dict
 
 import numpy as np
 import torch
+from PIL import Image
 from einops import repeat, rearrange
+from torchvision import transforms
 
 from src.base.base_torch_dataset import BaseTorchDataset
 
@@ -33,21 +35,34 @@ class KaeggleDataset(BaseTorchDataset):
             num_samples = len(samples)
             if self.verbose: print("Found {} samples at path: {}".format(num_samples, imgs_path))
             if self.preloadAll:
-                pass  # TODO
+                for image in samples:
+                    self.data.append(self.load_single_img(imgs_path + "/" + image))
             else:
                 self.data = [imgs_path + "/" + file for file in samples]
             if os.path.exists(labels_path):
                 labels = [name for name in os.listdir(labels_path) if '.png' in name]
                 if len(labels) != num_samples: raise Exception("Number of labels does not match number of samples")
                 if self.preloadAll:
-                    pass  # TODO
+                    for image in labels:
+                        self.targets.append(self.load_single_img(labels_path + "/" + image))
                 else:
                     self.targets = [labels_path + "/" + file for file in labels]
 
+            self.sample_transforms = transforms.Compose([
+                # transforms.Resize((256, 256)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+            self.label_transforms = transforms.Compose([
+                # transforms.Resize((256, 256)),
+                transforms.ToTensor(),
+            ])
             self.num_samples = num_samples
 
         if self.verbose:
             print(f"Loaded dataset {self.entity_name} with {len(self)} samples")
+            if self.preloadAll:
+                print(f"with shape {self.data[0].shape} and labels with shape {self.targets[0].shape}")
         self.half_precision = self.config["half_precision"] if "half_precision" in self.config.keys() and self.config[
             "half_precision"] is not None else False
         self.device = 'cpu'
@@ -71,7 +86,20 @@ class KaeggleDataset(BaseTorchDataset):
         return self.load_single(idx)
 
     def load_single(self, idx):
-        return self.load_single_img(self.data[idx]), self.load_single_img(self.targets[idx])
+        return self.load_single_img(self.data[idx]), self.load_single_img_label(self.targets[idx])
 
     def load_single_img(self, file_path):
-        pass  # TODO first
+        image = Image.open(file_path).convert("RGB")
+
+        if self.sample_transforms:
+            image = self.sample_transforms(image)
+
+        return image
+
+    def load_single_img_label(self, file_path):
+        image = Image.open(file_path).convert("L")
+
+        if self.label_transforms:
+            image = self.label_transforms(image)
+
+        return image
