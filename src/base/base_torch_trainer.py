@@ -60,6 +60,14 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
     num_samples: Optional[int]
 
     def __init__(self, config: Dict[str, Any]):
+        self.test_dataset = None
+        self.val_dataset = None
+        self.train_dataset = None
+        self.run_name = None
+        self.base_checkpoint_path = None
+        self.model = None
+        self.optimizer = None
+        self.scheduler = None
         self.device = None
         self.checkpoint_setup = False
         self.config = config
@@ -247,6 +255,12 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
                           weight_decay=self.optimizer_config["weight_decay"], betas=self.optimizer_config["betas"])
         self.optimizer = instance
 
+        # self.optimizer = instantiate(
+        #     self.optimizer_config, params=self.model.parameters()
+        # )
+        # self.scheduler = instantiate(self.scheduler_config, optimizer=self.optimizer)
+
+    def setup_scheduler(self):
         if "_target_" not in self.scheduler_config:
             raise ValueError("No _target_ defined in scheduler_config")
         modules = self.scheduler_config["_target_"].split(".")
@@ -255,14 +269,10 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         instance = class_(self.optimizer, gamma=self.scheduler_config["gamma"])
         self.scheduler = instance
 
-        # self.optimizer = instantiate(
-        #     self.optimizer_config, params=self.model.parameters()
-        # )
-        # self.scheduler = instantiate(self.scheduler_config, optimizer=self.optimizer)
-
     def _setup_optimizer(self):
         self.pre_optimizer_setup()
         self.setup_optimizer()
+        self.setup_scheduler()
         self.post_optimizer_setup()
 
     def setup_device(self):

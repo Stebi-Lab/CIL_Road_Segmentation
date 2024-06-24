@@ -4,7 +4,6 @@ from typing import Any, Dict
 import numpy as np
 import torch
 from PIL import Image
-from einops import repeat, rearrange
 from torchvision import transforms
 
 from src.base.base_torch_dataset import BaseTorchDataset

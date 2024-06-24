@@ -1,6 +1,6 @@
 import torch
 
-from src.trainer.test_trainer import KeaggleTrainer
+from src.trainer.default_trainer import DefaultTrainer
 
 base_data_path = "data"
 
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # config_path = find_file(directory, ".yaml")
     # pretrained_path = find_file(directory, ".pt")
 
-    ct = KeaggleTrainer.from_config(
+    ct = DefaultTrainer.from_config(
         "{}/{}/config.yaml".format(base_data_path, dataset),
         config={
             # "pretrained_path": pretrained_path,

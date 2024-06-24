@@ -1,30 +1,18 @@
-import random
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import typing
 import attr
-import matplotlib.pyplot as plt
-import numpy as np
 import torch
-import torch.nn.functional as F
-import torch.optim as optim
-from einops import rearrange
-from IPython.display import clear_output
-from matplotlib.colors import hex2color
 from torch import nn
 from tqdm import tqdm
-from loguru import logger
 
 # internal
 import wandb
-from omegaconf import OmegaConf
 
 from src.base.base_torch_trainer import BaseTorchTrainer
 
 
 @attr.s(init=False, repr=True)
-class KeaggleTrainer(BaseTorchTrainer):
+class DefaultTrainer(BaseTorchTrainer):
     use_dataset: bool
     use_model: bool
     half_precision: bool
@@ -47,6 +35,7 @@ class KeaggleTrainer(BaseTorchTrainer):
             "clip_gradients"] is not None else False
         super().__init__(config)
 
+        self.name = "KeaggleTrainer"
         self.criterion = nn.BCEWithLogitsLoss()
 
     def setup_wandb(self):
@@ -63,38 +52,18 @@ class KeaggleTrainer(BaseTorchTrainer):
                     "half_precision": self.half_precision
                 })
 
+    def setup_scheduler(self):
+        if "_target_" not in self.scheduler_config:
+            raise ValueError("No _target_ defined in scheduler_config")
+        modules = self.scheduler_config["_target_"].split(".")
+        class_name = modules[-1]
+        class_ = getattr(torch.optim.lr_scheduler, class_name)
+        instance = class_(self.optimizer, factor=self.scheduler_config["factor"],
+                          patience=self.scheduler_config["patience"],
+                          threshold=self.scheduler_config["threshold"], verbose=True, min_lr=self.scheduler_config["min_lr"])
+        self.scheduler = instance
+
     def visualize(self, out):
-        # for tree in range(1):
-        #     prev_batch = out["prev_batch"][tree]
-        #     post_batch = out["post_batch"][tree]
-        #     prev_batch = rearrange(prev_batch, "b d h w c -> b w d h c")
-        #     post_batch = rearrange(post_batch, "b d h w c -> b w d h c")
-        #     prev_batch = replace_colors(
-        #         np.argmax(prev_batch[:, :, :, :, : self.num_categories], -1),
-        #         self.dataset.target_color_dict,
-        #     )
-        #     post_batch = replace_colors(
-        #         np.argmax(post_batch[:, :, :, :, : self.num_categories], -1),
-        #         self.dataset.target_color_dict,
-        #     )
-        #     clear_output()
-        #     vis0 = prev_batch[:5]
-        #     vis1 = post_batch[:5]
-        #     num_cols = len(vis0)
-        #     vis0[vis0 == "_empty"] = None
-        #     vis1[vis1 == "_empty"] = None
-        #     print(f'Before --- After --- Tree {tree}')
-        #     fig = plt.figure(figsize=(15, 10))
-        #     for i in range(1, num_cols + 1):
-        #         ax0 = fig.add_subplot(1, num_cols, i, projection="3d")
-        #         ax0.voxels(vis0[i - 1], facecolors=vis0[i - 1], edgecolor="k")
-        #         ax0.set_title("Index {}".format(i))
-        #     for i in range(1, num_cols + 1):
-        #         ax1 = fig.add_subplot(2, num_cols, i + num_cols, projection="3d")
-        #         ax1.voxels(vis1[i - 1], facecolors=vis1[i - 1], edgecolor="k")
-        #         ax1.set_title("Index {}".format(i))
-        #     plt.subplots_adjust(bottom=0.005)
-        #     plt.show()
         pass
 
     def get_loss(self, x, targets):
@@ -122,11 +91,9 @@ class KeaggleTrainer(BaseTorchTrainer):
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
 
         self.optimizer.step()
-        self.scheduler.step()
         out = {
-            "out": output,
             "metrics": {"loss": loss.item()},
-            "loss": loss,
+            "loss": loss.detach(),
         }
         return out
 
@@ -147,14 +114,15 @@ class KeaggleTrainer(BaseTorchTrainer):
                 # inputs.to(self.device)
                 # labels.to(self.device)
 
-                pbar.set_description(f"Epoch {epoch}")
+                pbar.set_description(f"Epoch {epoch+1}/{self.epochs}")
 
                 if self.half_precision:
                     with torch.cuda.amp.autocast():
                         out_dict = self.train_func(inputs, labels)
                 else:
                     out_dict = self.train_func(inputs, labels)
-                _, loss, metrics = out_dict["out"], out_dict["loss"], out_dict["metrics"]
+                loss, metrics = out_dict["loss"], out_dict["metrics"]
+                self.scheduler.step(loss)
 
                 # if self.visualize_output:
                 #     output["prev_batch"].append(inputs.detach().cpu().numpy())
@@ -163,7 +131,7 @@ class KeaggleTrainer(BaseTorchTrainer):
                 output["total_loss"].append(loss)
                 with torch.no_grad():
                     output["loss"] = torch.mean(torch.stack(output["total_loss"]))
-                    pbar.set_postfix(loss=loss.item(), total_loss=output["loss"].item())
+                    pbar.set_postfix(loss=loss.item(), total_loss=output["loss"].item(), lr=self.scheduler.get_last_lr())
 
             for metric in output["total_metrics"][0]:
                 output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.train_dataset)

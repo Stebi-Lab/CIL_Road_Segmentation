@@ -1,11 +1,19 @@
 trainer:
   model_config:
     _target_: TestModel
-    update_net_channel_dims:
-    - 64
-    - 32
-    - 32
-    - 16
+    network_shape:
+      - - 64
+        - 5
+        - 2
+        - 2
+      - - 128
+        - 3
+        - 3
+        - 2
+      - - 256
+        - 3
+        - 3
+        - 2
     verbose: false
   train_dataset_config:
     _target_: TestDataset
@@ -45,28 +53,31 @@ trainer:
     - 0.9
     - 0.999
     eps: 1.0e-08
-    weight_decay: 0
+    weight_decay: 0.01
     amsgrad: false
   scheduler_config:
     _target_: torch.optim.lr_scheduler.ExponentialLR
     gamma: 0.9999
     last_epoch: -1
+    factor: 0.5
+    patience: 5
+    threshold: 0.001
   logging_config:
     checkpoint_path: checkpoints
   _target_: src.base.base_torch_model.BaseTorchTrainer
   name: DefaultTrainer
   pretrained_path: null
-  visualize_output: true
+  visualize_output: false
   use_cuda: false
   device_id: 0
   early_stoppage: false
   loss_threshold: 0.005
   batch_size: 8
   epochs: 51
-  checkpoint_interval: 10
+  checkpoint_interval: 5
   half_precision: false
   clip_gradients: false
-  torch_seed: null
+  torch_seed: 42
   use_dataset: true
   use_model: true
   wandb: false
