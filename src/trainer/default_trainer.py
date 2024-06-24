@@ -134,7 +134,7 @@ class DefaultTrainer(BaseTorchTrainer):
             for metric in output["total_metrics"][0]:
                 output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.train_dataloader)
             output["loss"] = torch.mean(torch.stack(output["total_loss"]))
-            output["metrics"]["lr"] = current_lr
+            output["metrics"]["lr"] = current_lr[0]
             self.scheduler.step(output["loss"])
             return output
 

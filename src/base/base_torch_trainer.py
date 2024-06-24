@@ -323,7 +323,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
             "scheduler": self.scheduler.state_dict(),
         }
         torch.save(checkpoint, torch_path)
-        self.save_config(path)
+        self.save_config(path) # TODO save metrics
         return path
 
     def save_config(self, path) -> str:
@@ -355,7 +355,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         #         train_metrics[metric], metric, step=epoch
         #     )
         metrics = train_metrics | val_metrics
-        print(metrics)
+
         if self.wandb:
             for_wandb = {key: val for key, val in metrics.items()}
             for_wandb["epoch"] = epoch
