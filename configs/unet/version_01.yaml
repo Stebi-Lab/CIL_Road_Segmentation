@@ -1,0 +1,60 @@
+trainer:
+  model_config:
+    _target_: UnetModel
+    network_shape:
+      - [64, 5, 2, 2]
+      - [128, 3, 3, 2]
+      - [256, 3, 3, 2]
+    verbose: true
+  train_dataset_config:
+    _target_: KaeggleDataset
+    dataset_path: null
+    preload_all: false
+    verbose: true
+  val_dataset_config:
+    _target_: KaeggleDataset
+    dataset_path: null
+    preload_all: false
+    verbose: true
+  test_dataset_config:
+    _target_: TestDataset
+    dataset_path: null
+    preload_all: false
+    verbose: true
+  dataloader_config:
+    _target_: torch.utils.data.dataloader.DataLoader
+    shuffle: true
+    num_workers: 0
+  optimizer_config:
+    _target_: torch.optim.adam.Adam
+    lr: 0.001
+    betas:
+    - 0.9
+    - 0.999
+    weight_decay: 0
+  scheduler_config:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    gamma: 0.9999
+    factor: 0.2
+    patience: 3
+    threshold: 0.001
+    min_lr: 0.00001
+  logging_config:
+    checkpoint_path: checkpoints
+  name: DefaultTrainer
+  pretrained_path: null
+  visualize_output: false
+  use_cuda: false
+  device_id: 0
+  early_stoppage: false
+  loss_threshold: 0.005
+  batch_size: 8
+  epochs: 51
+  checkpoint_interval: 5
+  half_precision: false
+  clip_gradients: false
+  torch_seed: 42
+  use_dataset: true
+  use_model: true
+  wandb: false
+  verbose: true

@@ -42,14 +42,12 @@ class DefaultTrainer(BaseTorchTrainer):
         if self.wandb:
             wandb.init(
                 # set the wandb project where this run will be logged
-                project="NCA",
+                project="satellite-segmentation",
                 name=self.name,
                 # track hyperparameters and run metadata
                 config={
                     "epochs": self.epochs,
                     "batch_size": self.batch_size,
-                    "num_categories": self.num_categories,
-                    "half_precision": self.half_precision
                 })
 
     def setup_scheduler(self):
@@ -60,7 +58,7 @@ class DefaultTrainer(BaseTorchTrainer):
         class_ = getattr(torch.optim.lr_scheduler, class_name)
         instance = class_(self.optimizer, factor=self.scheduler_config["factor"],
                           patience=self.scheduler_config["patience"],
-                          threshold=self.scheduler_config["threshold"], verbose=True, min_lr=self.scheduler_config["min_lr"])
+                          threshold=self.scheduler_config["threshold"], min_lr=self.scheduler_config["min_lr"])
         self.scheduler = instance
 
     def visualize(self, out):
@@ -93,7 +91,7 @@ class DefaultTrainer(BaseTorchTrainer):
         self.optimizer.step()
         out = {
             "metrics": {"loss": loss.item()},
-            "loss": loss.detach(),
+            "loss": loss.detach().cpu(),
         }
         return out
 
@@ -102,13 +100,14 @@ class DefaultTrainer(BaseTorchTrainer):
         loss = self.get_loss(output, targets)
         out = {
             "out": output,
-            "metrics": {"loss": loss.item()},
-            "loss": loss,
+            "metrics": {"val_loss": loss.item()},
+            "loss": loss.detach().cpu(),
         }
         return out
 
-    def train_iter(self, batch_size=32, epoch=0):
+    def train_iter(self, epoch=0):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
+        current_lr = self.scheduler.get_last_lr()
         with tqdm(self.train_dataloader) as pbar:
             for (inputs, labels) in pbar:
                 # inputs.to(self.device)
@@ -122,7 +121,6 @@ class DefaultTrainer(BaseTorchTrainer):
                 else:
                     out_dict = self.train_func(inputs, labels)
                 loss, metrics = out_dict["loss"], out_dict["metrics"]
-                self.scheduler.step(loss)
 
                 # if self.visualize_output:
                 #     output["prev_batch"].append(inputs.detach().cpu().numpy())
@@ -131,11 +129,13 @@ class DefaultTrainer(BaseTorchTrainer):
                 output["total_loss"].append(loss)
                 with torch.no_grad():
                     output["loss"] = torch.mean(torch.stack(output["total_loss"]))
-                    pbar.set_postfix(loss=loss.item(), total_loss=output["loss"].item(), lr=self.scheduler.get_last_lr())
+                    pbar.set_postfix(loss=loss.item(), total_loss=output["loss"].item(), lr=current_lr)
 
             for metric in output["total_metrics"][0]:
-                output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.train_dataset)
+                output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.train_dataloader)
             output["loss"] = torch.mean(torch.stack(output["total_loss"]))
+            output["metrics"]["lr"] = current_lr
+            self.scheduler.step(output["loss"])
             return output
 
     def val_iter(self, batch_size=32, epoch=0):
@@ -146,14 +146,14 @@ class DefaultTrainer(BaseTorchTrainer):
                     # inputs.to(self.device)
                     # labels.to(self.device)
 
-                    pbar.set_description(f"Epoch {epoch} Validation")
+                    pbar.set_description(f"Epoch {epoch+1}/{self.epochs} Validation")
 
                     if self.half_precision:
                         with torch.cuda.amp.autocast():
                             out_dict = self.val_func(inputs, labels)
                     else:
                         out_dict = self.val_func(inputs, labels)
-                    _, loss, metrics = out_dict["out"], out_dict["loss"], out_dict["metrics"]
+                    loss, metrics = out_dict["loss"], out_dict["metrics"]
 
                     # if self.visualize_output:
                     #     output["prev_batch"].append(inputs.detach().cpu().numpy())
@@ -164,7 +164,7 @@ class DefaultTrainer(BaseTorchTrainer):
                     pbar.set_postfix(val_loss=loss.item(), total_val_loss=output["loss"].item())
 
                 for metric in output["total_metrics"][0]:
-                    output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.val_dataset)
+                    output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.val_dataloader)
                 output["loss"] = torch.mean(torch.stack(output["total_loss"]))
                 return output
 

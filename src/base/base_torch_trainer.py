@@ -354,9 +354,10 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         #     self.tensorboard_logger.log_scalar(
         #         train_metrics[metric], metric, step=epoch
         #     )
-
+        metrics = train_metrics | val_metrics
+        print(metrics)
         if self.wandb:
-            for_wandb = {key: val for key, val in train_metrics.items()}
+            for_wandb = {key: val for key, val in metrics.items()}
             for_wandb["epoch"] = epoch
             wandb.log(for_wandb)
 
@@ -378,7 +379,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def train_iter(
-            self, batch_size: int, iteration: Optional[int] = None
+            self, iteration: Optional[int] = None
     ) -> Dict[Any, Any]:
         """
             Training iteration, specify learning process here
@@ -440,7 +441,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         self.setup_dataloader()
         for i in range(self.epochs):
             self.pre_train_iter()
-            output = self.train_iter(self.batch_size, i)
+            output = self.train_iter(i)
             self.post_train_iter(output)
             metrics = output.get("metrics", {})
             loss = output["loss"]

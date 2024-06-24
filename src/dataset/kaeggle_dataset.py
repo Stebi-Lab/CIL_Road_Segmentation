@@ -66,6 +66,9 @@ class KaeggleDataset(BaseTorchDataset):
         self.half_precision = self.config["half_precision"] if "half_precision" in self.config.keys() and self.config[
             "half_precision"] is not None else False
 
+        if self.verbose:
+            print(self.load_single_img_label(self.targets[0]))
+
         # if self.half_precision:
         #     self.data = [s.astype(np.float16) for s in self.data]
         # else:

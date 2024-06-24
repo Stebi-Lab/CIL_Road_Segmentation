@@ -3,6 +3,7 @@ import torch
 from src.trainer.default_trainer import DefaultTrainer
 
 base_data_path = "data"
+base_configs_path = "configs"
 
 if __name__ == "__main__":
 
@@ -15,14 +16,15 @@ if __name__ == "__main__":
     # config_path = find_file(directory, ".yaml")
     # pretrained_path = find_file(directory, ".pt")
 
+    config_path = "{}/{}".format(base_configs_path, "unet/version_01.yaml")
     ct = DefaultTrainer.from_config(
-        "{}/{}/config.yaml".format(base_data_path, dataset),
+        config_path,
         config={
             # "pretrained_path": pretrained_path,
             "use_cuda": torch.cuda.is_available(),
             "wandb": False,
             'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train"), "preload_all": False},
-            'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val"), "preload_all": True},
+            'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val"), "preload_all": False},
         }
     )
     ct.train()
