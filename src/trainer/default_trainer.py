@@ -45,10 +45,8 @@ class DefaultTrainer(BaseTorchTrainer):
                 project="satellite-segmentation",
                 name=self.name,
                 # track hyperparameters and run metadata
-                config={
-                    "epochs": self.epochs,
-                    "batch_size": self.batch_size,
-                })
+                config=self.config
+            )
 
     def setup_scheduler(self):
         if "_target_" not in self.scheduler_config:
