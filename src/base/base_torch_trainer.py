@@ -488,6 +488,5 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
         if self.visualize_output:
             self.visualize(output)
-        self.save()
 
         return metrics
