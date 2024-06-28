@@ -22,6 +22,8 @@ class KaeggleDataset(BaseTorchDataset):
         self.dataset_path = self.config["dataset_path"] if "dataset_path" in self.config.keys() else None
         self.preloadAll = self.config["preload_all"] if "preload_all" in self.config.keys() and self.config[
             "preload_all"] is not None else False
+        self.isTest = self.config["test"] if "test" in self.config.keys() and self.config[
+            "test"] is not None else False
         self.device = 'cpu'
         self.targets = []
         self.data = []
@@ -48,7 +50,7 @@ class KaeggleDataset(BaseTorchDataset):
                     self.data.append(self.load_single_img(imgs_path + "/" + image))
             else:
                 self.data = [imgs_path + "/" + file for file in samples]
-            if os.path.exists(labels_path):
+            if not self.isTest and os.path.exists(labels_path):
                 labels = [name for name in os.listdir(labels_path) if '.png' in name]
                 if len(labels) != num_samples: raise Exception("Number of labels does not match number of samples")
                 if self.preloadAll:
@@ -62,12 +64,12 @@ class KaeggleDataset(BaseTorchDataset):
         if self.verbose:
             print(f"Loaded dataset {self.entity_name} with {len(self)} samples")
             if self.preloadAll:
-                print(f"with shape {self.data[0].shape} and labels with shape {self.targets[0].shape}")
+                if self.isTest:
+                    print(f"with shape {self.data[0].shape}")
+                else:
+                    print(f"with shape {self.data[0].shape} and labels with shape {self.targets[0].shape}")
         self.half_precision = self.config["half_precision"] if "half_precision" in self.config.keys() and self.config[
             "half_precision"] is not None else False
-
-        if self.verbose:
-            print(self.load_single_img_label(self.targets[0]))
 
         # if self.half_precision:
         #     self.data = [s.astype(np.float16) for s in self.data]
@@ -85,11 +87,12 @@ class KaeggleDataset(BaseTorchDataset):
 
     def __getitem__(self, idx):
         if self.preloadAll:
-            return self.data[idx], self.targets[idx]
+            return (self.data[idx], self.targets[idx]) if not self.isTest else self.data[idx]
         return self.load_single(idx)
 
     def load_single(self, idx):
-        return self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device)
+        return (self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device)) if not self.isTest \
+            else self.load_single_img(self.data[idx]).to(self.device)
 
     def load_single_img(self, file_path):
         image = Image.open(file_path).convert("RGB")

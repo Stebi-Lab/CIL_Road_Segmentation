@@ -470,7 +470,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
     ) -> typing.Dict[str, Any]:
         """Main training function, should call train_iter
         """
-        if batch_size is not None:
+        if batch_size is not None:  # TODO Anuj Go over, should mostly be the same as train() (move tqdm bar to test_iter)
             self.batch_size = batch_size
         self.setup_logging_and_checkpoints()
         self.setup_test_dataloader()

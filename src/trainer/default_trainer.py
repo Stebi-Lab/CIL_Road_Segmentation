@@ -72,7 +72,7 @@ class DefaultTrainer(BaseTorchTrainer):
 
         return loss
 
-    def infer(self, inputs):
+    def infer(self, inputs):  # TODO Anuj use in testing
         with torch.no_grad():
             return self.model(inputs)
 
@@ -166,26 +166,9 @@ class DefaultTrainer(BaseTorchTrainer):
                 output["loss"] = torch.mean(torch.stack(output["total_loss"]))
                 return output
 
-    def test_iter(self, batch_size=32, iteration=0):
+    def test_iter(self, batch_size=32, iteration=0):  # TODO Anuj main loop here + bar, use infer | similar to val_iter
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
         with torch.no_grad():
-            for step, (inputs, labels) in enumerate(self.test_dataloader):
-
-                if self.half_precision:
-                    with torch.cuda.amp.autocast():
-                        out_dict = self.val_func(inputs, labels)
-                else:
-                    out_dict = self.val_func(inputs, labels)
-                _, loss, metrics = out_dict["out"], out_dict["loss"], out_dict["metrics"]
-
-                # if self.visualize_output:
-                #     output["prev_batch"].append(inputs.detach().cpu().numpy())
-                #     output["post_batch"].append(out.detach().cpu().numpy())
-                output["total_metrics"].append(metrics)
-                output["total_loss"].append(loss)
-                # TODO maybe log individual steps with running loss
-
-            for metric in output["total_metrics"][0]:
-                output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.val_dataset)
-            output["loss"] = torch.mean(torch.stack(output["total_loss"]))
+            for step, (inputs, labels) in enumerate(self.test_dataloader):  # Dataloader and dataset are already created if you pass the path in the config file
+                pass
             return output

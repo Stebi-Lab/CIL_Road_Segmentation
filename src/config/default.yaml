@@ -20,18 +20,21 @@ trainer:
     entity_name: null
     dataset_path: null
     preload_all: false
+    test: false
     verbose: false
   val_dataset_config:
     _target_: TestDataset
     entity_name: null
     dataset_path: null
     preload_all: false
+    test: false
     verbose: false
   test_dataset_config:
     _target_: TestDataset
     entity_name: null
     dataset_path: null
     preload_all: false
+    test: true
     verbose: false
   dataloader_config:
     _target_: torch.utils.data.dataloader.DataLoader
