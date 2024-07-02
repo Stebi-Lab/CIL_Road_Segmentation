@@ -151,8 +151,8 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         _config = load_config(config_path)
         _config = merge(OmegaConf.create({"trainer": config}), _config)
         print(_config)
-        _config["trainer"]["config"] = _config
         _config["trainer"]["_target_"] = fullname(cls)
+        # _config["trainer"]["config"] = _config
         return cls(_config.trainer)
 
     def setup(self):
@@ -207,9 +207,6 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
                               num_workers=self.dataloader_config["num_workers"],
                               shuffle=False)
         self.val_dataloader = val_instance
-        # self.dataloader = instantiate(
-        #     self.dataloader_config, batch_size=self.batch_size, dataset=self.dataset
-        # )
 
     def setup_test_dataloader(self):
         if "_target_" not in self.dataloader_config:
@@ -327,7 +324,8 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         return path
 
     def save_config(self, path) -> str:
-        yaml_str = OmegaConf.to_yaml(self.config)
+        _config = OmegaConf.create({"trainer": self.config})
+        yaml_str = OmegaConf.to_yaml(_config)
         config_path = os.path.join(path, "{}.yaml".format(self.name))
         with open(config_path, "w") as f:
             f.write(yaml_str)
