@@ -107,7 +107,7 @@ class DefaultTrainer(BaseTorchTrainer):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
         current_lr = self.scheduler.get_last_lr()
         with tqdm(self.train_dataloader) as pbar:
-            for (inputs, labels) in pbar:
+            for (_, inputs, labels) in pbar:
                 # inputs.to(self.device)
                 # labels.to(self.device)
 
@@ -140,10 +140,9 @@ class DefaultTrainer(BaseTorchTrainer):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
         with torch.no_grad():
             with tqdm(self.val_dataloader) as pbar:
-                for inputs, labels in pbar:
-                    # inputs.to(self.device)
-                    # labels.to(self.device)
-
+                for idx, inputs, labels in pbar:
+                    print()
+                    print(idx)
                     pbar.set_description(f"Epoch {epoch+1}/{self.epochs} Validation")
 
                     if self.half_precision:

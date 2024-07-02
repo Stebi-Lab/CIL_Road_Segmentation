@@ -91,8 +91,8 @@ class KaeggleDataset(BaseTorchDataset):
         return self.load_single(idx)
 
     def load_single(self, idx):
-        return (self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device)) if not self.isTest \
-            else self.load_single_img(self.data[idx]).to(self.device)
+        return (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device)) if not self.isTest \
+            else (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device))
 
     def load_single_img(self, file_path):
         image = Image.open(file_path).convert("RGB")
