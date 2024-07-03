@@ -21,6 +21,7 @@ trainer:
     _target_: TestDataset
     dataset_path: null
     preload_all: false
+    test: true
     verbose: true
   dataloader_config:
     _target_: torch.utils.data.dataloader.DataLoader

@@ -13,11 +13,13 @@ import torch
 import tqdm
 from loguru import logger
 from omegaconf import OmegaConf
+from PIL import Image
 
 from src.dataset import datasetMappingDict
 from src.model import modelMappingDict
 # internal
 from src.utils.utils import makedirs, load_config, merge
+
 
 
 def fullname(cls):
@@ -465,29 +467,50 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         self.post_train()
         return metrics, val_metrics
 
-    def test(
-            self, batch_size=None, visualize=None
-    ) -> typing.Dict[str, Any]:
-        """Main training function, should call train_iter
-        """
+    def test(self, batch_size=None, visualize=None) -> typing.Dict[str, Any]:
+        """Main testing function, should call test_iter."""
+        
         if batch_size is not None:
             self.batch_size = batch_size
         self.setup_logging_and_checkpoints()
         self.setup_test_dataloader()
-        bar = tqdm.tqdm(np.arange(len(self.test_dataloader)))
         self.pre_test_iter()
-        output = self.test_iter(bar, self.batch_size)
+        output = self.test_iter(self.batch_size)
+        
         self.post_test_iter(output)
-        metrics = output.get("metrics", {})
-        loss = output["loss"]
+        mask_tensors = output.get("mask_tensors", [])
+        file_names = output.get("file_names", [])
 
-        self.log_test(metrics)
+        ## Save PNG images to folder
+        self.save_to_image(mask_tensors, file_names, save_dir='results')
+        
+        return mask_tensors
 
-        description = "--".join(["{}:{}".format(k, metrics[k]) for k in metrics])
-        bar.set_description(description)
+    
+    def save_to_image(self, mask_tensors, file_names, save_dir='results'):
+        """
+        Saves the masks to the save_dir directory as png images.
+        """
 
-        if self.visualize_output:
-            self.visualize(output)
-        self.save()
+        # Create save directory if it does not exist
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        
+        # Save each binary mask as a PNG image
+        for mask_tensor, file_name in zip(mask_tensors, file_names):
+            mask_array = mask_tensor.cpu().numpy().astype(np.uint8) * 255  # Convert to uint8 and scale to [0, 255]
+            if mask_array.ndim == 2:
+                mask_image = Image.fromarray(mask_array)
+            elif mask_array.ndim == 3:
+                mask_image = Image.fromarray(mask_array[0])  # Handle (1, H, W) shape
+            else:
+                raise ValueError(f"Unexpected mask array shape: {mask_array.shape}")
+            mask_image.save(os.path.join(save_dir, file_name))  # Save with the correct filename
 
-        return metrics
+        return None
+
+
+
+
+
+

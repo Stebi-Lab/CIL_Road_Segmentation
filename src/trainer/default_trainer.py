@@ -73,8 +73,18 @@ class DefaultTrainer(BaseTorchTrainer):
         return loss
 
     def infer(self, inputs):
+        """  
+        ## Anuj use in testing // done
+        inputs: input satellite images in dataset
+        binary_predictions: the predictions binarized to a tensor with 0,1 values. 
+        """
         with torch.no_grad():
-            return self.model(inputs)
+            predictions = self.model(inputs)
+            #print('predictions type', type(predictions)) ## <class 'torch.Tensor'>
+            #print('predictions shape', predictions.shape) ## torch.Size([batch, 1, 400, 400])
+            binary_predictions = (predictions > 0).float()
+            
+            return binary_predictions
 
     def train_func(self, inputs, targets):
         self.optimizer.zero_grad()
@@ -107,7 +117,7 @@ class DefaultTrainer(BaseTorchTrainer):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
         current_lr = self.scheduler.get_last_lr()
         with tqdm(self.train_dataloader) as pbar:
-            for (inputs, labels) in pbar:
+            for (_, inputs, labels) in pbar:
                 # inputs.to(self.device)
                 # labels.to(self.device)
 
@@ -140,10 +150,9 @@ class DefaultTrainer(BaseTorchTrainer):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
         with torch.no_grad():
             with tqdm(self.val_dataloader) as pbar:
-                for inputs, labels in pbar:
-                    # inputs.to(self.device)
-                    # labels.to(self.device)
-
+                for idx, inputs, labels in pbar:
+                    print()
+                    print(idx)
                     pbar.set_description(f"Epoch {epoch+1}/{self.epochs} Validation")
 
                     if self.half_precision:
@@ -166,26 +175,29 @@ class DefaultTrainer(BaseTorchTrainer):
                 output["loss"] = torch.mean(torch.stack(output["total_loss"]))
                 return output
 
-    def test_iter(self, batch_size=32, iteration=0):
-        output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
+
+    def test_iter(self, batch_size=8):
+        """
+        Main loop for testing. Similar to val_iter but for inference.
+        """
+        output = {"mask_tensors": [], "file_names": []}
+        
         with torch.no_grad():
-            for step, (inputs, labels) in enumerate(self.test_dataloader):
+            with tqdm(self.test_dataloader) as pbar:
+                for step, (file_names, inputs) in enumerate(pbar):
+                    pbar.set_description(f"Step {step} Test")
 
-                if self.half_precision:
-                    with torch.cuda.amp.autocast():
-                        out_dict = self.val_func(inputs, labels)
-                else:
-                    out_dict = self.val_func(inputs, labels)
-                _, loss, metrics = out_dict["out"], out_dict["loss"], out_dict["metrics"]
+                    if self.half_precision:
+                        with torch.cuda.amp.autocast():
+                            binary_predictions = self.infer(inputs)
+                    else:
+                        binary_predictions = self.infer(inputs)
 
-                # if self.visualize_output:
-                #     output["prev_batch"].append(inputs.detach().cpu().numpy())
-                #     output["post_batch"].append(out.detach().cpu().numpy())
-                output["total_metrics"].append(metrics)
-                output["total_loss"].append(loss)
-                # TODO maybe log individual steps with running loss
+                    # Iterate over the batch and append each prediction and file name individually
+                    for prediction, file_name in zip(binary_predictions, file_names):
+                        output["mask_tensors"].append(prediction.squeeze())  # remove batch dimension
+                        output["file_names"].append(file_name)
 
-            for metric in output["total_metrics"][0]:
-                output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.val_dataset)
-            output["loss"] = torch.mean(torch.stack(output["total_loss"]))
-            return output
+        return output
+
+

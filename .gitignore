@@ -8,3 +8,6 @@
 /build/
 /dist/
 /cil_road_seg.egg-info/
+/results/
+/__pycache__/
+submission.csv
