@@ -11,3 +11,5 @@
 /results/
 __pycache__/
 submission.csv
+.DS_Store
+
