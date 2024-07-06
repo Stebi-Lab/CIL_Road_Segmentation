@@ -21,7 +21,6 @@ from src.model import modelMappingDict
 from src.utils.utils import makedirs, load_config, merge
 
 
-
 def fullname(cls):
     module = cls.__module__
     return "{}.{}".format(module, cls.__name__)
@@ -325,7 +324,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
             "scheduler": self.scheduler.state_dict(),
         }
         torch.save(checkpoint, torch_path)
-        self.save_config(path) # TODO save metrics
+        self.save_config(path)  # TODO save metrics
         return path
 
     def save_config(self, path) -> str:
@@ -469,24 +468,23 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
     def test(self, batch_size=None, visualize=None) -> typing.Dict[str, Any]:
         """Main testing function, should call test_iter."""
-        
+
         if batch_size is not None:
             self.batch_size = batch_size
         self.setup_logging_and_checkpoints()
         self.setup_test_dataloader()
         self.pre_test_iter()
         output = self.test_iter(self.batch_size)
-        
+
         self.post_test_iter(output)
         mask_tensors = output.get("mask_tensors", [])
         file_names = output.get("file_names", [])
 
-        ## Save PNG images to folder
+        # Save PNG images to folder
         self.save_to_image(mask_tensors, file_names, save_dir='results')
-        
-        return mask_tensors
 
-    
+        return output
+
     def save_to_image(self, mask_tensors, file_names, save_dir='results'):
         """
         Saves the masks to the save_dir directory as png images.
@@ -495,7 +493,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         # Create save directory if it does not exist
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        
+
         # Save each binary mask as a PNG image
         for mask_tensor, file_name in zip(mask_tensors, file_names):
             mask_array = mask_tensor.cpu().numpy().astype(np.uint8) * 255  # Convert to uint8 and scale to [0, 255]
@@ -508,9 +506,3 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
             mask_image.save(os.path.join(save_dir, file_name))  # Save with the correct filename
 
         return None
-
-
-
-
-
-

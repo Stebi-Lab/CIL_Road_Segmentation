@@ -80,10 +80,10 @@ class DefaultTrainer(BaseTorchTrainer):
         """
         with torch.no_grad():
             predictions = self.model(inputs)
-            #print('predictions type', type(predictions)) ## <class 'torch.Tensor'>
-            #print('predictions shape', predictions.shape) ## torch.Size([batch, 1, 400, 400])
+            # print('predictions type', type(predictions)) ## <class 'torch.Tensor'>
+            # print('predictions shape', predictions.shape) ## torch.Size([batch, 1, 400, 400])
             binary_predictions = (predictions > 0).float()
-            
+
             return binary_predictions
 
     def train_func(self, inputs, targets):
@@ -121,7 +121,7 @@ class DefaultTrainer(BaseTorchTrainer):
                 # inputs.to(self.device)
                 # labels.to(self.device)
 
-                pbar.set_description(f"Epoch {epoch+1}/{self.epochs}")
+                pbar.set_description(f"Epoch {epoch + 1}/{self.epochs}")
 
                 if self.half_precision:
                     with torch.cuda.amp.autocast():
@@ -140,7 +140,8 @@ class DefaultTrainer(BaseTorchTrainer):
                     pbar.set_postfix(loss=loss.item(), total_loss=output["loss"].item(), lr=current_lr)
 
             for metric in output["total_metrics"][0]:
-                output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.train_dataloader)
+                output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(
+                    self.train_dataloader)
             output["loss"] = torch.mean(torch.stack(output["total_loss"]))
             output["metrics"]["lr"] = current_lr[0]
             self.scheduler.step(output["loss"])
@@ -153,7 +154,7 @@ class DefaultTrainer(BaseTorchTrainer):
                 for idx, inputs, labels in pbar:
                     print()
                     print(idx)
-                    pbar.set_description(f"Epoch {epoch+1}/{self.epochs} Validation")
+                    pbar.set_description(f"Epoch {epoch + 1}/{self.epochs} Validation")
 
                     if self.half_precision:
                         with torch.cuda.amp.autocast():
@@ -171,22 +172,21 @@ class DefaultTrainer(BaseTorchTrainer):
                     pbar.set_postfix(val_loss=loss.item(), total_val_loss=output["loss"].item())
 
                 for metric in output["total_metrics"][0]:
-                    output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(self.val_dataloader)
+                    output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(
+                        self.val_dataloader)
                 output["loss"] = torch.mean(torch.stack(output["total_loss"]))
                 return output
 
-
-    def test_iter(self, batch_size=8):
+    def test_iter(self, batch_size=8, epoch=0):
         """
         Main loop for testing. Similar to val_iter but for inference.
         """
         output = {"mask_tensors": [], "file_names": []}
-        
+
         with torch.no_grad():
             with tqdm(self.test_dataloader) as pbar:
+                pbar.set_description(f"Test")
                 for step, (file_names, inputs) in enumerate(pbar):
-                    pbar.set_description(f"Step {step} Test")
-
                     if self.half_precision:
                         with torch.cuda.amp.autocast():
                             binary_predictions = self.infer(inputs)
@@ -199,5 +199,3 @@ class DefaultTrainer(BaseTorchTrainer):
                         output["file_names"].append(file_name)
 
         return output
-
-
