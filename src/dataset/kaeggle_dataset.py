@@ -24,6 +24,9 @@ class KaeggleDataset(BaseTorchDataset):
             "preload_all"] is not None else False
         self.isTest = self.config["test"] if "test" in self.config.keys() and self.config[
             "test"] is not None else False
+        self.padding = self.config["padding"] if "padding" in self.config.keys() and self.config[
+            "padding"] is not None else 0
+
         self.device = 'cpu'
         self.targets = []
         self.data = []
@@ -31,11 +34,13 @@ class KaeggleDataset(BaseTorchDataset):
         self.sample_transforms = transforms.Compose([
             # transforms.Resize((256, 256)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Pad((0, 0, 16, 16))
         ])
         self.label_transforms = transforms.Compose([
             # transforms.Resize((256, 256)),
             transforms.ToTensor(),
+            transforms.Pad((0, 0, 16, 16))
         ])
         if self.dataset_path is not None:
             imgs_path = self.dataset_path + "/images"
@@ -91,7 +96,8 @@ class KaeggleDataset(BaseTorchDataset):
         return self.load_single(idx)
 
     def load_single(self, idx):
-        return (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device)) if not self.isTest \
+        return (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device),
+                self.load_single_img_label(self.targets[idx]).to(self.device)) if not self.isTest \
             else (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device))
 
     def load_single_img(self, file_path):
@@ -107,4 +113,3 @@ class KaeggleDataset(BaseTorchDataset):
         if self.label_transforms:
             image = self.label_transforms(image)
         return image
-

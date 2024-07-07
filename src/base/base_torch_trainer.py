@@ -457,6 +457,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
                 if self.visualize_output:
                     self.visualize(output, val_output)
                 self.save(step=i)
+
             if self.early_stoppage:
                 if loss <= self.loss_threshold:
                     self.save(step=i)

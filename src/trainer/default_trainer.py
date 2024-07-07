@@ -9,6 +9,7 @@ from tqdm import tqdm
 import wandb
 
 from src.base.base_torch_trainer import BaseTorchTrainer
+import torch.nn.functional as F
 
 
 @attr.s(init=False, repr=True)
@@ -67,6 +68,8 @@ class DefaultTrainer(BaseTorchTrainer):
         # Note: If target is of shape [batchsize, x, y], it needs to be unsqueezed to match [batchsize, 1, x, y]
         if targets.dim() == 3:
             targets = targets.unsqueeze(1)
+        if targets.shape[-1] != x.shape[-1]:
+            x = F.interpolate(x, size=(416, 416), mode='bilinear', align_corners=False)
         # Compute the loss
         loss = self.criterion(x, targets)
 
@@ -152,8 +155,8 @@ class DefaultTrainer(BaseTorchTrainer):
         with torch.no_grad():
             with tqdm(self.val_dataloader) as pbar:
                 for idx, inputs, labels in pbar:
-                    print()
-                    print(idx)
+                    # print()
+                    # print(idx)
                     pbar.set_description(f"Epoch {epoch + 1}/{self.epochs} Validation")
 
                     if self.half_precision:
