@@ -1,3 +1,6 @@
+import os
+os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
+
 import torch
 
 from src.trainer.default_trainer import DefaultTrainer
@@ -24,6 +27,7 @@ if __name__ == "__main__":
         config={
             "pretrained_path": pretrained_path,
             "use_cuda": torch.cuda.is_available(),
+            "use_mps": torch.backends.mps.is_available(),
             "wandb": False,
             'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train"), },
             'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val"), },
