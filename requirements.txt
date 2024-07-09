@@ -16,3 +16,4 @@ omegaconf~=2.3.0
 ipython~=8.18.1
 setuptools~=68.2.0
 protobuf~=3.20
+segformer-pytorch
