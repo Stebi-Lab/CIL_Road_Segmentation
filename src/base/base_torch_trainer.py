@@ -37,6 +37,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
     pretrained_path: Optional[str]
     visualize_output: bool
     use_cuda: bool
+    use_mps: bool
     device_id: int
     wandb: bool
     early_stoppage: bool
@@ -78,6 +79,8 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         self.visualize_output = self.config["visualize_output"] if "visualize_output" in self.config.keys() else False
         self.use_cuda = self.config["use_cuda"] if "use_cuda" in self.config.keys() and self.config[
             "use_cuda"] is not None else False
+        self.use_mps = self.config["use_mps"] if "use_mps" in self.config.keys() and self.config[
+            "use_mps"] is not None else False
         self.device_id = self.config["device_id"] if "device_id" in self.config.keys() and self.config[
             "device_id"] is not None else 0
         self.early_stoppage = self.config["early_stoppage"] if "early_stoppage" in self.config.keys() and self.config[
@@ -130,8 +133,9 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         self.config["name"] = self.name
 
         self.device = torch.device(
-            "cuda:{}".format(self.device_id) if self.use_cuda else "cpu"
+            "cuda:{}".format(self.device_id) if self.use_cuda else "mps" if self.use_mps else "cpu"
         )
+
 
         self.setup()
         self.setup_logging_and_checkpoints()
