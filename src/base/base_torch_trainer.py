@@ -138,7 +138,6 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
 
         self.setup()
-        self.setup_logging_and_checkpoints()
         self._setup_dataset()
         self.setup_dataloader()
         self.setup_test_dataloader()
@@ -308,6 +307,9 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
             step: Optional[int] = None,
             path_name: Optional[str] = None,
     ) -> str:
+        if not self.checkpoint_setup:
+            self.setup_logging_and_checkpoints()
+
         checkpoint_path = self.checkpoint_path
         if base_path is not None:
             checkpoint_path = base_path
@@ -440,7 +442,6 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         if checkpoint_interval is not None:
             self.checkpoint_interval = checkpoint_interval
         self.pre_train()
-        self.setup_logging_and_checkpoints()
         self.setup_dataloader()
         for i in range(self.epochs):
             self.pre_train_iter()
@@ -474,7 +475,6 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
         if batch_size is not None:
             self.batch_size = batch_size
-        self.setup_logging_and_checkpoints()
         self.setup_test_dataloader()
         self.pre_test_iter()
         output = self.test_iter(self.batch_size)
