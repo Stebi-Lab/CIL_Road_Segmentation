@@ -50,7 +50,7 @@ trainer:
     gamma: 0.9999
     factor: 0.8
     patience: 5
-    threshold: 0.001
+    threshold: 0.002
     min_lr: 0.0001
   logging_config:
     checkpoint_path: checkpoints

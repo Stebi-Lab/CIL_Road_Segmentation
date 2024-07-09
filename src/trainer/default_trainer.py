@@ -83,6 +83,9 @@ class DefaultTrainer(BaseTorchTrainer):
         """
         with torch.no_grad():
             predictions = self.model(inputs)
+            if predictions.shape[-1] == 104:
+                predictions = F.interpolate(predictions, size=(416, 416), mode='bilinear', align_corners=False)
+
             # print('predictions type', type(predictions)) ## <class 'torch.Tensor'>
             # print('predictions shape', predictions.shape) ## torch.Size([batch, 1, 400, 400])
             binary_predictions = (predictions > 0).float()
