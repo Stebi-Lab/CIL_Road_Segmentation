@@ -29,7 +29,6 @@ def fullname(cls):
 @attr.s(init=False, repr=True)
 class BaseTorchTrainer(metaclass=abc.ABCMeta):
     _config_group_ = "trainer"
-    _config_name_ = "default"
 
     config: Dict[str, Any]
 
