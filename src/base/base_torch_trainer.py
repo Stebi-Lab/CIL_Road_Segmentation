@@ -267,7 +267,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         modules = self.scheduler_config["_target_"].split(".")
         class_name = modules[-1]
         class_ = getattr(torch.optim.lr_scheduler, class_name)
-        instance = class_(self.optimizer, gamma=self.scheduler_config["gamma"])
+        instance = class_(self.optimizer, **self.scheduler_config["options"])
         self.scheduler = instance
 
     def _setup_optimizer(self):
@@ -364,6 +364,17 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         if self.wandb:
             for_wandb = {key: val for key, val in metrics.items()}
             for_wandb["epoch"] = epoch
+            wandb.log(for_wandb)
+
+    def log_step(self, train_metrics):
+        # for metric in train_metrics:
+        #     self.tensorboard_logger.log_scalar(
+        #         train_metrics[metric], metric, step=epoch
+        #     )
+        metrics = train_metrics
+
+        if self.wandb:
+            for_wandb = {key: val for key, val in metrics.items()}
             wandb.log(for_wandb)
 
     def log_test(self, test_metrics):

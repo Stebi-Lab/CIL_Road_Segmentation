@@ -49,17 +49,6 @@ class DefaultTrainer(BaseTorchTrainer):
                 config=self.config
             )
 
-    def setup_scheduler(self):
-        if "_target_" not in self.scheduler_config:
-            raise ValueError("No _target_ defined in scheduler_config")
-        modules = self.scheduler_config["_target_"].split(".")
-        class_name = modules[-1]
-        class_ = getattr(torch.optim.lr_scheduler, class_name)
-        instance = class_(self.optimizer, factor=self.scheduler_config["factor"],
-                          patience=self.scheduler_config["patience"],
-                          threshold=self.scheduler_config["threshold"], min_lr=self.scheduler_config["min_lr"])
-        self.scheduler = instance
-
     def visualize(self, out):
         pass
 
@@ -135,6 +124,8 @@ class DefaultTrainer(BaseTorchTrainer):
                 else:
                     out_dict = self.train_func(inputs, labels)
                 loss, metrics = out_dict["loss"], out_dict["metrics"]
+
+                self.log_step(metrics)
 
                 # if self.visualize_output:
                 #     output["prev_batch"].append(inputs.detach().cpu().numpy())

@@ -9,7 +9,7 @@ from torchvision import transforms
 from src.base.base_torch_dataset import BaseTorchDataset
 
 
-class KaeggleDataset(BaseTorchDataset):
+class CombinedDataset(BaseTorchDataset):
     def __init__(
             self,
             config: Dict[str, Any],
@@ -18,7 +18,7 @@ class KaeggleDataset(BaseTorchDataset):
         self.verbose = self.config["verbose"] if "verbose" in self.config.keys() and self.config[
             "verbose"] is not None else False
         self.entity_name = self.config["entity_name"] if "entity_name" in self.config.keys() and self.config[
-            "entity_name"] is not None else "Kaeggle-Dataset"
+            "entity_name"] is not None else "Combined-Dataset"
         self.dataset_path = self.config["dataset_path"] if "dataset_path" in self.config.keys() else None
         self.preloadAll = self.config["preload_all"] if "preload_all" in self.config.keys() and self.config[
             "preload_all"] is not None else False
