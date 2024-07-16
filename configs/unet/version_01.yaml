@@ -1,37 +1,26 @@
 trainer:
-  name: DT-SegFormer
   model_config:
-    _target_: SegFormer
+    _target_: UnetModel
+    network_shape:
+      - [64, 3, 3, 2]
+      - [128, 3, 3, 2]
+      - [256, 3, 3, 2]
+      - [512, 3, 2, 2]
     verbose: true
   train_dataset_config:
     _target_: KaeggleDataset
     dataset_path: null
-    padding:
-      - 0
-      - 0
-      - 16
-      - 16
     preload_all: false
     verbose: true
   val_dataset_config:
     _target_: KaeggleDataset
     dataset_path: null
-    padding:
-      - 0
-      - 0
-      - 16
-      - 16
     preload_all: false
     verbose: true
   test_dataset_config:
-    _target_: KaeggleDataset
+    _target_: TestDataset
     dataset_path: null
     preload_all: false
-    padding:
-      - 0
-      - 0
-      - 16
-      - 16
     test: true
     verbose: true
   dataloader_config:
@@ -50,10 +39,11 @@ trainer:
     options:
       factor: 0.8
       patience: 5
-      threshold: 0.002
+      threshold: 0.001
       min_lr: 0.0001
   logging_config:
     checkpoint_path: checkpoints
+  name: DefaultTrainer
   pretrained_path: null
   visualize_output: false
   use_cuda: false
@@ -61,8 +51,8 @@ trainer:
   device_id: 0
   early_stoppage: false
   loss_threshold: 0.005
-  batch_size: 4
-  epochs: 71
+  batch_size: 8
+  epochs: 101
   checkpoint_interval: 5
   half_precision: false
   clip_gradients: false

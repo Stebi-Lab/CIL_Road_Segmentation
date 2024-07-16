@@ -4,7 +4,7 @@ trainer:
     _target_: SegFormer
     verbose: true
   train_dataset_config:
-    _target_: CombinedDataset
+    _target_: KaeggleDataset
     dataset_path: null
     padding:
       - 0
@@ -14,7 +14,7 @@ trainer:
     preload_all: false
     verbose: true
   val_dataset_config:
-    _target_: CombinedDataset
+    _target_: KaeggleDataset
     dataset_path: null
     padding:
       - 0
@@ -46,9 +46,12 @@ trainer:
     - 0.999
     weight_decay: 0
   scheduler_config:
-    _target_: torch.optim.lr_scheduler.ExponentialLR
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
     options:
-      gamma: 0.5
+      factor: 0.8
+      patience: 5
+      threshold: 0.002
+      min_lr: 0.0001
   logging_config:
     checkpoint_path: checkpoints
   pretrained_path: null
@@ -59,8 +62,8 @@ trainer:
   early_stoppage: false
   loss_threshold: 0.005
   batch_size: 4
-  epochs: 31
-  checkpoint_interval: 1
+  epochs: 71
+  checkpoint_interval: 5
   half_precision: false
   clip_gradients: false
   torch_seed: 42

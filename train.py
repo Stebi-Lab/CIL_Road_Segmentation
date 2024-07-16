@@ -11,10 +11,10 @@ base_configs_path = "configs"
 
 if __name__ == "__main__":
 
-    dataset = 'kaeggle'
+    dataset = 'combined'
     dataset_path = "{}/{}".format(base_data_path, dataset)
 
-    config_path = "{}/{}".format(base_configs_path, "segformer/version_01.yaml")
+    config_path = "{}/{}".format(base_configs_path, "segformer/version_02.yaml")
 
     # if loading pretrained model
     # checkpoints_path = "C:/Users/cedri/Desktop/Code/ETH/DLProject/Neural_Cellular_Automata_for_diverse_Tree_growing/checkpoints/2024-01-05-00-40-39_VariousTrees_20tree_final_pink/checkpoints"
