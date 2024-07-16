@@ -10,6 +10,6 @@
 /cil_road_seg.egg-info/
 /results/
 __pycache__/
-submission.csv
+submission**.csv
 .DS_Store
 
