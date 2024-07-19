@@ -151,12 +151,11 @@ class UnetModel(BaseTorchModel):
                 channels += skipConnections[Etage_Number - 1].shape[-3]
                 x = torch.cat((skipConnections[Etage_Number - 1], x), -3)
                 if self.print_sizes: print("Concat " + str(Etage_Number) + ": ", x.shape, channels)
-            with torch.no_grad():
 
-                for Etage_Layer in Etage:
-                    x = F.relu(x)
-                    x = Etage_Layer(x)
-                    if self.print_sizes: print("Up "+str(Etage_Number)+": ", x.shape)
+            for Etage_Layer in Etage:
+                x = F.relu(x)
+                x = Etage_Layer(x)
+                if self.print_sizes: print("Up "+str(Etage_Number)+": ", x.shape)
 
             if self.num_floors - 1 != Etage_Number:
                 x = self.unpooling_layers[Etage_Number](x, indices_Arr[Etage_Number])

@@ -25,7 +25,7 @@ class KaeggleDataset(BaseTorchDataset):
         self.isTest = self.config["test"] if "test" in self.config.keys() and self.config[
             "test"] is not None else False
         self.padding = self.config["padding"] if "padding" in self.config.keys() and self.config[
-            "padding"] is not None else 0
+            "padding"] is not None else [0, 0, 0, 0]
         if self.verbose: print("Padding with {}".format(tuple(self.padding)))
 
         self.device = 'cpu'
