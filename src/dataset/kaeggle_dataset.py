@@ -1,10 +1,12 @@
 import os
 from typing import Any, Dict
-
+import random
 import numpy as np
 import torch
 from PIL import Image
 from torchvision import transforms
+from torchvision.transforms import functional as F
+
 
 from src.base.base_torch_dataset import BaseTorchDataset
 
@@ -22,21 +24,34 @@ class KaeggleDataset(BaseTorchDataset):
         self.dataset_path = self.config["dataset_path"] if "dataset_path" in self.config.keys() else None
         self.preloadAll = self.config["preload_all"] if "preload_all" in self.config.keys() and self.config[
             "preload_all"] is not None else False
-        self.isTest = self.config["test"] if "test" in self.config.keys() and self.config[
-            "test"] is not None else False
+        self.padding = self.config["padding"] if "padding" in self.config.keys() and self.config[
+            "padding"] is not None else 0
         self.device = 'cpu'
         self.targets = []
         self.data = []
         self.num_samples = 0
+
+        self.type = self.config["type"] if "type" in self.config.keys() and self.config[
+            "type"] is not None else 'train'
+        self.augment = self.config["augment"] if "augment" in self.config.keys() and self.config[
+            "augment"] is not None else False
+
+        print('self.augment is:', self.augment)
+        print('self.type is:', self.type)
+
         self.sample_transforms = transforms.Compose([
             # transforms.Resize((256, 256)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Pad((0, 0, 16, 16))
+
         ])
         self.label_transforms = transforms.Compose([
             # transforms.Resize((256, 256)),
             transforms.ToTensor(),
+            transforms.Pad((0, 0, 16, 16))
         ])
+        
         if self.dataset_path is not None:
             imgs_path = self.dataset_path + "/images"
             labels_path = self.dataset_path + "/labels"
@@ -50,7 +65,8 @@ class KaeggleDataset(BaseTorchDataset):
                     self.data.append(self.load_single_img(imgs_path + "/" + image))
             else:
                 self.data = [imgs_path + "/" + file for file in samples]
-            if not self.isTest and os.path.exists(labels_path):
+            
+            if (self.type != 'test') and os.path.exists(labels_path):
                 labels = sorted([name for name in os.listdir(labels_path) if '.png' in name])
                 if len(labels) != num_samples: raise Exception("Number of labels does not match number of samples")
                 if self.preloadAll:
@@ -64,7 +80,7 @@ class KaeggleDataset(BaseTorchDataset):
         if self.verbose:
             print(f"Loaded dataset {self.entity_name} with {len(self)} samples")
             if self.preloadAll:
-                if self.isTest:
+                if self.type == 'test':
                     print(f"with shape {self.data[0].shape}")
                 else:
                     print(f"with shape {self.data[0].shape} and labels with shape {self.targets[0].shape}")
@@ -87,12 +103,24 @@ class KaeggleDataset(BaseTorchDataset):
 
     def __getitem__(self, idx):
         if self.preloadAll:
-            return (self.data[idx], self.targets[idx]) if not self.isTest else self.data[idx]
-        return self.load_single(idx)
+            if self.type != 'test':
+                return self.data[idx], self.targets[idx]
+            else:
+                return self.data[idx]
 
-    def load_single(self, idx):
-        return (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device)) if not self.isTest \
-            else (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device))
+        if self.type != 'test':
+            img, label = self.load_both(idx)
+            return (self.data[idx].split('/')[-1], img.to(self.device), label.to(self.device))
+        
+        if self.type == 'test':
+            return self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device)
+
+    # def load_single(self, idx):
+    #     if (self.type != 'test'):
+    #         return (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device))
+        
+    #     elif (self.type == 'test'):
+    #         return (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device))
 
     def load_single_img(self, file_path):
         image = Image.open(file_path).convert("RGB")
@@ -101,10 +129,94 @@ class KaeggleDataset(BaseTorchDataset):
             image = self.sample_transforms(image)
         return image
 
-    def load_single_img_label(self, file_path):
-        image = Image.open(file_path).convert("L")
+    # def load_single_img_label(self, file_path):
+    #     image = Image.open(file_path).convert("L")
 
+    #     if self.label_transforms:
+    #         image = self.label_transforms(image)
+    #     return image
+
+    
+    def load_both(self, idx):
+        """
+        Loads both Image and Label concurrently and transforms them
+        """
+
+        img_file_path = self.data[idx]
+        label_file_path = self.targets[idx]
+
+        image = Image.open(img_file_path).convert("RGB")
+        label = Image.open(label_file_path).convert("L")
+
+        if self.sample_transforms:
+            image = self.sample_transforms(image)
         if self.label_transforms:
-            image = self.label_transforms(image)
-        return image
+            label = self.label_transforms(label)
+
+        ## Save for visualization
+        #self.save_img_label_png(idx, image, label, dir='before_augment')
+
+        # Apply augmentations
+        if self.augment and self.type == 'train':
+            severity = 0.4  # Adjust severity as needed
+            image, label = self.random_augmentations(image, label, severity)
+
+        ## Save for visualization
+        #self.save_img_label_png(idx, image, label, dir='after_augment')
+
+        return image, label
+
+    def random_augmentations(self, image, label, severity):
+        
+        # Random horizontal flip
+        if random.random() > 0.5:
+            image = F.hflip(image)
+            label = F.hflip(label)
+
+        # Random vertical flip
+        if random.random() > 0.5:
+            image = F.vflip(image)
+            label = F.vflip(label)
+
+        # Random rotation
+        angle = random.choice([0, 90, 180, 270])
+        image = F.rotate(image, angle)
+        label = F.rotate(label, angle)
+
+        # Random zoom and crop
+        scale = random.uniform(1-severity, 1+severity)
+        i, j, h, w = transforms.RandomResizedCrop.get_params(
+            image, scale=(scale, scale), ratio=(1.0, 1.0)
+        )
+        image = F.resized_crop(image, i, j, h, w, size=(image.shape[1], image.shape[2]))
+        label = F.resized_crop(label, i, j, h, w, size=(label.shape[1], label.shape[2]))
+
+        return image, label
+
+    def save_img_label_png(self, idx, img, label, dir='augment_examples'):
+        """
+        Save combined image and label for visual inspection.
+        """
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        
+        # Convert tensors to PIL images
+        img = transforms.ToPILImage()(img)
+        label = transforms.ToPILImage()(label)
+        
+        # Concatenate image and label horizontally
+        combined_img = Image.new('RGB', (img.width + label.width, img.height))
+        combined_img.paste(img, (0, 0))
+        combined_img.paste(label, (img.width, 0))
+        
+        # Save the image
+        combined_img.save(os.path.join(dir, f'{idx}.png'))
+
+
+
+
+
+
+
+
 
