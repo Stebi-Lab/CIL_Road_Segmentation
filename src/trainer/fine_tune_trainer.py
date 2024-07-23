@@ -13,12 +13,14 @@ import torch.nn.functional as F
 
 
 @attr.s(init=False, repr=True)
-class DefaultTrainer(BaseTorchTrainer):
+class TuneTrainer(BaseTorchTrainer):
     use_dataset: bool
     use_model: bool
     half_precision: bool
     torch_seed: Optional[int]
     clip_gradients: bool
+
+    _config_name_: str = "test"
 
     num_categories: Optional[int] = 0
 
@@ -33,7 +35,7 @@ class DefaultTrainer(BaseTorchTrainer):
         self.clip_gradients = config["clip_gradients"] if "clip_gradients" in config.keys() and config[
             "clip_gradients"] is not None else False
         super().__init__(config)
-
+        self.name = self.name + "_tuned"
         self.criterion = nn.BCEWithLogitsLoss()
 
     def setup_wandb(self):
@@ -48,6 +50,16 @@ class DefaultTrainer(BaseTorchTrainer):
 
     def visualize(self, out):
         pass
+
+    def load_model(
+            self, checkpoint_path: str, load_optimizer_and_scheduler: bool = True
+    ):
+        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        self.model.load_state_dict(checkpoint["model"])
+        self.model.to(self.device)
+        if "optimizer" in checkpoint:
+            if load_optimizer_and_scheduler:
+                self.optimizer.load_state_dict(checkpoint["optimizer"])
 
     def get_loss(self, x, targets):
         # Ensure the target has the same shape as output

@@ -29,7 +29,6 @@ def fullname(cls):
 @attr.s(init=False, repr=True)
 class BaseTorchTrainer(metaclass=abc.ABCMeta):
     _config_group_ = "trainer"
-    _config_name_ = "default"
 
     config: Dict[str, Any]
 
@@ -37,6 +36,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
     pretrained_path: Optional[str]
     visualize_output: bool
     use_cuda: bool
+    use_mps: bool
     device_id: int
     wandb: bool
     early_stoppage: bool
@@ -78,6 +78,8 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         self.visualize_output = self.config["visualize_output"] if "visualize_output" in self.config.keys() else False
         self.use_cuda = self.config["use_cuda"] if "use_cuda" in self.config.keys() and self.config[
             "use_cuda"] is not None else False
+        self.use_mps = self.config["use_mps"] if "use_mps" in self.config.keys() and self.config[
+            "use_mps"] is not None else False
         self.device_id = self.config["device_id"] if "device_id" in self.config.keys() and self.config[
             "device_id"] is not None else 0
         self.early_stoppage = self.config["early_stoppage"] if "early_stoppage" in self.config.keys() and self.config[
@@ -130,11 +132,11 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         self.config["name"] = self.name
 
         self.device = torch.device(
-            "cuda:{}".format(self.device_id) if self.use_cuda else "cpu"
+            "cuda:{}".format(self.device_id) if self.use_cuda else "mps" if self.use_mps else "cpu"
         )
 
+
         self.setup()
-        self.setup_logging_and_checkpoints()
         self._setup_dataset()
         self.setup_dataloader()
         self.setup_test_dataloader()
@@ -264,7 +266,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         modules = self.scheduler_config["_target_"].split(".")
         class_name = modules[-1]
         class_ = getattr(torch.optim.lr_scheduler, class_name)
-        instance = class_(self.optimizer, gamma=self.scheduler_config["gamma"])
+        instance = class_(self.optimizer, **self.scheduler_config["options"])
         self.scheduler = instance
 
     def _setup_optimizer(self):
@@ -304,6 +306,9 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
             step: Optional[int] = None,
             path_name: Optional[str] = None,
     ) -> str:
+        if not self.checkpoint_setup:
+            self.setup_logging_and_checkpoints()
+
         checkpoint_path = self.checkpoint_path
         if base_path is not None:
             checkpoint_path = base_path
@@ -358,6 +363,17 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         if self.wandb:
             for_wandb = {key: val for key, val in metrics.items()}
             for_wandb["epoch"] = epoch
+            wandb.log(for_wandb)
+
+    def log_step(self, train_metrics):
+        # for metric in train_metrics:
+        #     self.tensorboard_logger.log_scalar(
+        #         train_metrics[metric], metric, step=epoch
+        #     )
+        metrics = train_metrics
+
+        if self.wandb:
+            for_wandb = {key: val for key, val in metrics.items()}
             wandb.log(for_wandb)
 
     def log_test(self, test_metrics):
@@ -436,7 +452,6 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         if checkpoint_interval is not None:
             self.checkpoint_interval = checkpoint_interval
         self.pre_train()
-        self.setup_logging_and_checkpoints()
         self.setup_dataloader()
         for i in range(self.epochs):
             self.pre_train_iter()
@@ -457,6 +472,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
                 if self.visualize_output:
                     self.visualize(output, val_output)
                 self.save(step=i)
+
             if self.early_stoppage:
                 if loss <= self.loss_threshold:
                     self.save(step=i)
@@ -469,7 +485,6 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
 
         if batch_size is not None:
             self.batch_size = batch_size
-        self.setup_logging_and_checkpoints()
         self.setup_test_dataloader()
         self.pre_test_iter()
         output = self.test_iter(self.batch_size)

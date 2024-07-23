@@ -124,6 +124,8 @@ class UnetModel(BaseTorchModel):
 
     def forward(self, x):
 
+
+
         skipConnections = []
         indices_Arr = []
         if self.print_sizes: print()

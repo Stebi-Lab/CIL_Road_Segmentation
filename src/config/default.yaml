@@ -63,11 +63,7 @@ trainer:
     amsgrad: false
   scheduler_config:
     _target_: torch.optim.lr_scheduler.ExponentialLR
-    gamma: 0.9999
-    last_epoch: -1
-    factor: 0.5
-    patience: 5
-    threshold: 0.001
+    options:
   logging_config:
     checkpoint_path: checkpoints
   _target_: src.base.base_torch_model.BaseTorchTrainer
@@ -75,6 +71,7 @@ trainer:
   pretrained_path: null
   visualize_output: false
   use_cuda: false
+  use_mps: false
   device_id: 0
   early_stoppage: false
   loss_threshold: 0.005

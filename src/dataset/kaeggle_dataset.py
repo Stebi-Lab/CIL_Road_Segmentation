@@ -25,7 +25,9 @@ class KaeggleDataset(BaseTorchDataset):
         self.preloadAll = self.config["preload_all"] if "preload_all" in self.config.keys() and self.config[
             "preload_all"] is not None else False
         self.padding = self.config["padding"] if "padding" in self.config.keys() and self.config[
-            "padding"] is not None else 0
+            "padding"] is not None else [0, 0, 0, 0]
+        if self.verbose: print("Padding with {}".format(tuple(self.padding)))
+
         self.device = 'cpu'
         self.targets = []
         self.data = []
@@ -43,15 +45,14 @@ class KaeggleDataset(BaseTorchDataset):
             # transforms.Resize((256, 256)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            transforms.Pad((0, 0, 16, 16))
-
+            transforms.Pad(tuple(self.padding))
         ])
         self.label_transforms = transforms.Compose([
             # transforms.Resize((256, 256)),
             transforms.ToTensor(),
-            transforms.Pad((0, 0, 16, 16))
+            transforms.Pad(tuple(self.padding))
         ])
-        
+
         if self.dataset_path is not None:
             imgs_path = self.dataset_path + "/images"
             labels_path = self.dataset_path + "/labels"
@@ -65,7 +66,7 @@ class KaeggleDataset(BaseTorchDataset):
                     self.data.append(self.load_single_img(imgs_path + "/" + image))
             else:
                 self.data = [imgs_path + "/" + file for file in samples]
-            
+
             if (self.type != 'test') and os.path.exists(labels_path):
                 labels = sorted([name for name in os.listdir(labels_path) if '.png' in name])
                 if len(labels) != num_samples: raise Exception("Number of labels does not match number of samples")
@@ -111,14 +112,14 @@ class KaeggleDataset(BaseTorchDataset):
         if self.type != 'test':
             img, label = self.load_both(idx)
             return (self.data[idx].split('/')[-1], img.to(self.device), label.to(self.device))
-        
+
         if self.type == 'test':
             return self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device)
 
     # def load_single(self, idx):
     #     if (self.type != 'test'):
     #         return (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device), self.load_single_img_label(self.targets[idx]).to(self.device))
-        
+
     #     elif (self.type == 'test'):
     #         return (self.data[idx].split('/')[-1], self.load_single_img(self.data[idx]).to(self.device))
 
@@ -136,7 +137,7 @@ class KaeggleDataset(BaseTorchDataset):
     #         image = self.label_transforms(image)
     #     return image
 
-    
+
     def load_both(self, idx):
         """
         Loads both Image and Label concurrently and transforms them
@@ -167,7 +168,7 @@ class KaeggleDataset(BaseTorchDataset):
         return image, label
 
     def random_augmentations(self, image, label, severity):
-        
+
         # Random horizontal flip
         if random.random() > 0.5:
             image = F.hflip(image)
@@ -199,24 +200,17 @@ class KaeggleDataset(BaseTorchDataset):
         """
         if not os.path.exists(dir):
             os.makedirs(dir)
-        
+
         # Convert tensors to PIL images
         img = transforms.ToPILImage()(img)
         label = transforms.ToPILImage()(label)
-        
+
         # Concatenate image and label horizontally
         combined_img = Image.new('RGB', (img.width + label.width, img.height))
         combined_img.paste(img, (0, 0))
         combined_img.paste(label, (img.width, 0))
-        
+
         # Save the image
         combined_img.save(os.path.join(dir, f'{idx}.png'))
-
-
-
-
-
-
-
 
 
