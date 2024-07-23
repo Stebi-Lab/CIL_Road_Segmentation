@@ -6,33 +6,33 @@ trainer:
   train_dataset_config:
     _target_: KaeggleDataset
     dataset_path: null
+    type: train
+    augment: true
     padding:
       - 0
       - 0
       - 16
       - 16
-    preload_all: false
     verbose: true
   val_dataset_config:
     _target_: KaeggleDataset
     dataset_path: null
+    type: val
     padding:
       - 0
       - 0
       - 16
       - 16
-    preload_all: false
     verbose: true
   test_dataset_config:
     _target_: KaeggleDataset
     dataset_path: null
-    preload_all: false
+    type: test
     padding:
       - 0
       - 0
       - 16
       - 16
-    test: true
     verbose: true
   dataloader_config:
     _target_: torch.utils.data.dataloader.DataLoader

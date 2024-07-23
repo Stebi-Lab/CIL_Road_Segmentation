@@ -10,17 +10,14 @@ trainer:
   train_dataset_config:
     _target_: KaeggleDataset
     dataset_path: null
-    preload_all: false
     verbose: true
   val_dataset_config:
     _target_: KaeggleDataset
     dataset_path: null
-    preload_all: false
     verbose: true
   test_dataset_config:
     _target_: TestDataset
     dataset_path: null
-    preload_all: false
     test: true
     verbose: true
   dataloader_config:

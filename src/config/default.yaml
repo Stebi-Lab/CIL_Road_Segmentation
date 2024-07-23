@@ -19,7 +19,6 @@ trainer:
     _target_: TestDataset
     entity_name: null
     dataset_path: null
-    preload_all: false
     type: train
     augment: false
     verbose: false
@@ -27,7 +26,6 @@ trainer:
     _target_: TestDataset
     entity_name: null
     dataset_path: null
-    preload_all: false
     type: val
     augment: false
     verbose: false
@@ -35,7 +33,6 @@ trainer:
     _target_: TestDataset
     entity_name: null
     dataset_path: null
-    preload_all: false
     type: test
     augment: false
     verbose: false
