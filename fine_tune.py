@@ -15,7 +15,7 @@ checkpoints_path = "checkpoints/2024-07-16-23-45-13_KeaggleTrainer/checkpoints" 
 
 if __name__ == "__main__":
 
-    dataset = 'kaeggle'
+    dataset = 'kaegglePure'
     dataset_path = "{}/{}".format(base_data_path, dataset)
 
     checkpoint_number = 1
@@ -26,18 +26,22 @@ if __name__ == "__main__":
     ct = TuneTrainer.from_config(
         config_path,
         config={
+            "name": "SegFormer_KeaggleAugTune",
             "pretrained_path": pretrained_path,
             "use_cuda": torch.cuda.is_available(),
             "use_mps": torch.backends.mps.is_available(),
-            "wandb": False,
-            'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train"), },
-            'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val"), },
-            'test_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "test"), 'test': True,
+            "wandb": True,
+            'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train"), 'type': 'train', 'augment': True,
+                                     "_target_": 'KaeggleDataset'},
+            'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val"), 'type': 'val',
+                                   "_target_": 'KaeggleDataset'},
+            'test_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "test"), 'type': 'test',
                                     "_target_": 'KaeggleDataset'},
             'optimizer_config': {'lr': 0.0004},
             'scheduler_config': {
                 'options': {'gamma': 0.9}
-            }
+            },
+            'epochs': 100
         }
     )
     ct.train()

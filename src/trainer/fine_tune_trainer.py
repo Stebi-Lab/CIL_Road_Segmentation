@@ -156,32 +156,34 @@ class TuneTrainer(BaseTorchTrainer):
     def val_iter(self, batch_size=32, epoch=0):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}
         with torch.no_grad():
-            with tqdm(self.val_dataloader) as pbar:
-                for idx, inputs, labels in pbar:
-                    # print()
-                    # print(idx)
-                    pbar.set_description(f"Epoch {epoch + 1}/{self.epochs} Validation")
+            if len(self.val_dataloader) > 0:
+                with tqdm(self.val_dataloader) as pbar:
+                    for idx, inputs, labels in pbar:
+                        # print()
+                        # print(idx)
+                        pbar.set_description(f"Epoch {epoch + 1}/{self.epochs} Validation")
 
-                    if self.half_precision:
-                        with torch.cuda.amp.autocast():
+                        if self.half_precision:
+                            with torch.cuda.amp.autocast():
+                                out_dict = self.val_func(inputs, labels)
+                        else:
                             out_dict = self.val_func(inputs, labels)
-                    else:
-                        out_dict = self.val_func(inputs, labels)
-                    loss, metrics = out_dict["loss"], out_dict["metrics"]
+                        loss, metrics = out_dict["loss"], out_dict["metrics"]
 
-                    # if self.visualize_output:
-                    #     output["prev_batch"].append(inputs.detach().cpu().numpy())
-                    #     output["post_batch"].append(out.detach().cpu().numpy())
-                    output["total_metrics"].append(metrics)
-                    output["total_loss"].append(loss)
+                        # if self.visualize_output:
+                        #     output["prev_batch"].append(inputs.detach().cpu().numpy())
+                        #     output["post_batch"].append(out.detach().cpu().numpy())
+                        output["total_metrics"].append(metrics)
+                        output["total_loss"].append(loss)
+                        output["loss"] = torch.mean(torch.stack(output["total_loss"]))
+                        pbar.set_postfix(val_loss=loss.item(), total_val_loss=output["loss"].item())
+
+                    for metric in output["total_metrics"][0]:
+                        output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(
+                            self.val_dataloader)
                     output["loss"] = torch.mean(torch.stack(output["total_loss"]))
-                    pbar.set_postfix(val_loss=loss.item(), total_val_loss=output["loss"].item())
+            return output
 
-                for metric in output["total_metrics"][0]:
-                    output["metrics"][metric] = sum([x[metric] for x in output["total_metrics"]]) / len(
-                        self.val_dataloader)
-                output["loss"] = torch.mean(torch.stack(output["total_loss"]))
-                return output
 
     def test_iter(self, batch_size=8, epoch=0):
         """

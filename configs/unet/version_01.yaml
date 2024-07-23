@@ -16,7 +16,7 @@ trainer:
     dataset_path: null
     verbose: true
   test_dataset_config:
-    _target_: TestDataset
+    _target_: NothingDataset
     dataset_path: null
     test: true
     verbose: true

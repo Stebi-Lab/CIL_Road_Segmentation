@@ -1,5 +1,5 @@
 from src.dataset.combined_dataset import CombinedDataset
 from src.dataset.kaeggle_dataset import KaeggleDataset
-from src.dataset.nothing_dataset import TestDataset
+from src.dataset.nothing_dataset import NothingDataset
 
-datasetMappingDict = {"TestDataset": TestDataset, 'KaeggleDataset': KaeggleDataset, 'CombinedDataset': CombinedDataset}
+datasetMappingDict = {"NothingDataset": NothingDataset, 'KaeggleDataset': KaeggleDataset, 'CombinedDataset': CombinedDataset}

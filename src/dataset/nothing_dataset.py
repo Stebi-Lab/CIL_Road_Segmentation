@@ -7,7 +7,7 @@ from einops import repeat, rearrange
 from src.base.base_torch_dataset import BaseTorchDataset
 
 
-class TestDataset(BaseTorchDataset):
+class NothingDataset(BaseTorchDataset):
     def __init__(
             self,
             config: Dict[str, Any],

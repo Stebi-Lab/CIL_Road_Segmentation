@@ -464,7 +464,6 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
             val_output = self.val_iter(self.batch_size, i)
             self.post_val_iter(val_output)
             val_metrics = val_output.get("metrics", {})
-            val_loss = val_output["loss"]
 
             self.log_epoch(metrics, val_metrics, i)
 

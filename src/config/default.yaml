@@ -16,21 +16,21 @@ trainer:
         - 2
     verbose: false
   train_dataset_config:
-    _target_: TestDataset
+    _target_: NothingDataset
     entity_name: null
     dataset_path: null
     type: train
     augment: false
     verbose: false
   val_dataset_config:
-    _target_: TestDataset
+    _target_: NothingDataset
     entity_name: null
     dataset_path: null
     type: val
     augment: false
     verbose: false
   test_dataset_config:
-    _target_: TestDataset
+    _target_: NothingDataset
     entity_name: null
     dataset_path: null
     type: test
