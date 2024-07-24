@@ -1,0 +1,149 @@
+trainer:
+  name: UnetPlusPlus_Pretrained
+  model_config:
+    _target_: UnetPlusPlusModel_Pretrained
+    verbose: true
+  train_dataset_config:
+    _target_: CombinedDataset
+    dataset_path: null
+    padding:
+      - 0
+      - 0
+      - 16
+      - 16
+    preload_all: false
+    verbose: true
+    type: train
+    augment: true
+  val_dataset_config:
+    _target_: CombinedDataset
+    dataset_path: null
+    padding:
+      - 0
+      - 0
+      - 16
+      - 16
+    preload_all: false
+    verbose: true
+    type: val
+  test_dataset_config:
+    _target_: KaeggleDataset
+    dataset_path: null
+    preload_all: false
+    padding:
+      - 0
+      - 0
+      - 16
+      - 16
+    type: test
+    augment: false
+    verbose: true
+  dataloader_config:
+    _target_: torch.utils.data.dataloader.DataLoader
+    shuffle: true
+    num_workers: 0
+  optimizer_config:
+    _target_: torch.optim.adam.Adam
+    lr: 0.001
+    betas:
+    - 0.9
+    - 0.999
+    weight_decay: 0
+  scheduler_config:
+    _target_: torch.optim.lr_scheduler.ExponentialLR
+    options:
+      gamma: 0.5
+  logging_config:
+    checkpoint_path: checkpoints
+  pretrained_path: null
+  visualize_output: false
+  use_cuda: false
+  use_mps: false
+  device_id: 0
+  early_stoppage: false
+  loss_threshold: 0.005
+  batch_size: 4
+  epochs: 3
+  checkpoint_interval: 1
+  half_precision: false
+  clip_gradients: false
+  torch_seed: 42
+  use_dataset: true
+  use_model: true
+  wandb: false
+  verbose: true
+
+
+
+
+
+# trainer:
+#   name: UnetPlusPlus_Pretrained
+#   model_config:
+#     _target_: UnetPlusPlusModel_Pretrained
+#     verbose: true
+#   train_dataset_config:
+#     _target_: CombinedDataset
+#     dataset_path: null
+#     padding:
+#       - 0
+#       - 0
+#       - 16
+#       - 16
+#     preload_all: false
+#     verbose: true
+#   val_dataset_config:
+#     _target_: CombinedDataset
+#     dataset_path: null
+#     padding:
+#       - 0
+#       - 0
+#       - 16
+#       - 16
+#     preload_all: false
+#     verbose: true
+#   test_dataset_config:
+#     _target_: KaeggleDataset
+#     dataset_path: null
+#     preload_all: false
+#     padding:
+#       - 0
+#       - 0
+#       - 16
+#       - 16
+#     test: true
+#     verbose: true
+#   dataloader_config:
+#     _target_: torch.utils.data.dataloader.DataLoader
+#     shuffle: true
+#     num_workers: 0
+#   optimizer_config:
+#     _target_: torch.optim.adam.Adam
+#     lr: 0.001
+#     betas:
+#     - 0.9
+#     - 0.999
+#     weight_decay: 0
+#   scheduler_config:
+#     _target_: torch.optim.lr_scheduler.ExponentialLR
+#     options:
+#       gamma: 0.5
+#   logging_config:
+#     checkpoint_path: checkpoints
+#   pretrained_path: null
+#   visualize_output: false
+#   use_cuda: false
+#   use_mps: false
+#   device_id: 0
+#   early_stoppage: false
+#   loss_threshold: 0.005
+#   batch_size: 4
+#   epochs: 3
+#   checkpoint_interval: 1
+#   half_precision: false
+#   clip_gradients: false
+#   torch_seed: 42
+#   use_dataset: true
+#   use_model: true
+#   wandb: false
+#   verbose: true
