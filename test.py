@@ -11,13 +11,13 @@ from mask_to_submission import main as mask_to_submission_main
 
 base_data_path = "data"  # dir where the train/val/test data is stored
 base_configs_path = "configs"  # dir where the configuration .yaml is stored
-checkpoints_path = "checkpoints/2024-06-26-02-10-20_DefaultTrainer_First/checkpoints"  # dir where the checkpoint .pt is stored
+checkpoints_path = "checkpoints/2024-07-26-00-56-19_Combined_MLP/checkpoints"  # dir where the checkpoint .pt is stored
 
 if __name__ == "__main__":
     dataset = 'kaeggle'
     dataset_path = "{}/{}".format(base_data_path, dataset)
 
-    checkpoint_number = 100
+    checkpoint_number = 20
     checkpoints_path = "{}/{}".format(checkpoints_path, checkpoint_number)
     config_path = find_file(checkpoints_path, ".yaml")
     pretrained_path = find_file(checkpoints_path, ".pt")
@@ -29,9 +29,11 @@ if __name__ == "__main__":
             "use_cuda": torch.cuda.is_available(),
             "use_mps": torch.backends.mps.is_available(),
             "wandb": False,
-            'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train"), },
-            'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val"), },
-            'test_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "test"), 'test': True,
+            'train_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "train"), 'type': 'train', 'augment': False,
+                                     "_target_": 'KaeggleDataset'},
+            'val_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "val"), 'type': 'val',
+                                   "_target_": 'KaeggleDataset'},
+            'test_dataset_config': {'dataset_path': "{}/{}".format(dataset_path, "test"), 'type': 'test',
                                     "_target_": 'KaeggleDataset'},
         }
     )

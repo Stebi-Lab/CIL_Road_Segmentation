@@ -422,7 +422,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
     def pre_train_iter(self):
         self.model.train()
 
-    def post_train_iter(self, train_output: Dict[Any, Any]):
+    def post_train_iter(self, train_output: Dict[Any, Any], epoch: int) -> None:
         pass
 
     def pre_val_iter(self):
@@ -453,7 +453,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         for i in range(self.epochs):
             self.pre_train_iter()
             output = self.train_iter(i)
-            self.post_train_iter(output)
+            self.post_train_iter(output, i)
             metrics = output.get("metrics", {})
             loss = output["loss"]
 

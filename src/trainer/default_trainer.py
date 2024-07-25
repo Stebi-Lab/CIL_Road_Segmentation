@@ -32,6 +32,8 @@ class DefaultTrainer(BaseTorchTrainer):
         self.torch_seed = config["torch_seed"] if "torch_seed" in config.keys() else 0
         self.clip_gradients = config["clip_gradients"] if "clip_gradients" in config.keys() and config[
             "clip_gradients"] is not None else False
+        self.unfreeze_epoch = config["unfreeze_epoch"] if "unfreeze_epoch" in config.keys() and config[
+            "unfreeze_epoch"] is not None else -1
         super().__init__(config)
 
         self.criterion = nn.BCEWithLogitsLoss()
@@ -104,6 +106,11 @@ class DefaultTrainer(BaseTorchTrainer):
             "loss": loss.detach().cpu(),
         }
         return out
+
+    def post_train_iter(self, train_output: Dict[Any, Any], epoch: int) -> None:
+        if epoch == self.unfreeze_epoch:
+            print("Unfreezing Weights!!!")
+            self.model.unfreeze_weights()
 
     def train_iter(self, epoch=0):
         output = {"prev_batch": [], "post_batch": [], "total_metrics": [], "total_loss": [], "metrics": {}}

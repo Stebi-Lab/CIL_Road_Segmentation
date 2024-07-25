@@ -48,14 +48,14 @@ class CombiModelConv(BaseTorchModel):
         self.p1 = SegFormerImpl(self.p1_config)
         checkpoint1 = torch.load(self.p1_checkpoint_path, map_location=self.device)
         self.p1.load_state_dict(checkpoint1["model"])
-        # self.p1.to(self.device)
+
         for param in self.p1.parameters():
             param.requires_grad = False
 
         self.p2 = UNetPlusPlusModel_Pretrained(self.p2_config)
         checkpoint2 = torch.load(self.p2_checkpoint_path, map_location=self.device)
         self.p2.load_state_dict(checkpoint2["model"])
-        # self.p2.to(self.device)
+
         for param in self.p2.parameters():
             param.requires_grad = False
 
@@ -64,8 +64,8 @@ class CombiModelConv(BaseTorchModel):
     def unfreeze_weights(self):
         for param in self.p1.parameters():
             param.requires_grad = True
-        for param in self.p2.parameters():
-            param.requires_grad = True
+        # for param in self.p2.parameters():
+        #     param.requires_grad = True
 
     def forward(self, x):
         out1 = self.p1(x)
