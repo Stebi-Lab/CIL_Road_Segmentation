@@ -113,6 +113,8 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
                                                                    self.config["optimizer_config"] is not None else {}
         self.scheduler_config = self.config["scheduler_config"] if "scheduler_config" in self.config.keys() and \
                                                                    self.config["scheduler_config"] is not None else {}
+        self.scheduler_give_value = self.config["scheduler_step_with_value"] if "scheduler_step_with_value" in self.config.keys() and \
+                                                                   self.config["scheduler_step_with_value"] is not None else False
         self.logging_config = self.config["logging_config"] if "logging_config" in self.config.keys() and self.config[
             "logging_config"] is not None else {}
         self.dataloader_config = self.config["dataloader_config"] if "dataloader_config" in self.config.keys() and \
@@ -120,6 +122,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
                                                                          "dataloader_config"] is not None else {}
 
         self.setup_trainer()
+
 
     def setup_wandb(self):
         pass
@@ -231,8 +234,7 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
     def setup_model(self):
         if "_target_" not in self.model_config:
             raise ValueError("No _target_ defined in model_config")
-        self.model = modelMappingDict[self.model_config["_target_"]](self.model_config)
-        # self.model = instantiate(self.model_config)
+        self.model = modelMappingDict[self.model_config["_target_"]](self.model_config, self.device)
 
     def _setup_model(self):
         self.pre_model_setup()
@@ -254,11 +256,6 @@ class BaseTorchTrainer(metaclass=abc.ABCMeta):
         instance = class_(self.model.parameters(), lr=self.optimizer_config["lr"],
                           weight_decay=self.optimizer_config["weight_decay"], betas=self.optimizer_config["betas"])
         self.optimizer = instance
-
-        # self.optimizer = instantiate(
-        #     self.optimizer_config, params=self.model.parameters()
-        # )
-        # self.scheduler = instantiate(self.scheduler_config, optimizer=self.optimizer)
 
     def setup_scheduler(self):
         if "_target_" not in self.scheduler_config:

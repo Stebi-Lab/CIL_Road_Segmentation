@@ -17,6 +17,7 @@ class SegFormerImpl(BaseTorchModel):
     def __init__(
             self,
             config: Dict[str, Any] = None,
+            device: torch.device = None
     ):
         super(SegFormerImpl, self).__init__()
         self.config = config

@@ -100,6 +100,7 @@ class TestModel(BaseTorchModel):
     def __init__(
             self,
             config: Dict[str, Any] = None,
+            device: torch.device = None
     ):
         super(TestModel, self).__init__()
         self.config = config

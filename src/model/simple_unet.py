@@ -16,6 +16,7 @@ class UnetModel(BaseTorchModel):
     def __init__(
             self,
             config: Dict[str, Any] = None,
+            device: torch.device = None
     ):
         super(UnetModel, self).__init__()
         self.config = config

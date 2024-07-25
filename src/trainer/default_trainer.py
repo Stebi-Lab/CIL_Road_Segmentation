@@ -138,7 +138,10 @@ class DefaultTrainer(BaseTorchTrainer):
                     self.train_dataloader)
             output["loss"] = torch.mean(torch.stack(output["total_loss"]))
             output["metrics"]["lr"] = current_lr[0]
-            self.scheduler.step(output["loss"])
+            if self.scheduler_give_value:
+                self.scheduler.step(output["loss"])
+            else:
+                self.scheduler.step()
             return output
 
     def val_iter(self, batch_size=32, epoch=0):

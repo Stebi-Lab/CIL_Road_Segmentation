@@ -9,6 +9,7 @@ class UNetPlusPlusModel_Pretrained(BaseTorchModel):
     def __init__(
             self,
             config: Dict[str, Any] = None,
+            device: torch.device = None
     ):
         super(UNetPlusPlusModel_Pretrained, self).__init__()
         self.config = config

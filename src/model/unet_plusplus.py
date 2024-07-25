@@ -28,6 +28,7 @@ class UNetPlusPlusModel(BaseTorchModel):
     def __init__(
             self,
             config: Dict[str, Any] = None,
+            device: torch.device = None
     ):
         super(UNetPlusPlusModel, self).__init__()
         self.config = config

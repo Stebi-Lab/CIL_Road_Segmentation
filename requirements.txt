@@ -17,4 +17,5 @@ ipython~=8.18.1
 setuptools~=68.2.0
 protobuf~=3.20
 segformer-pytorch
+segmentation-models-pytorch
 pillow~=10.3.0
