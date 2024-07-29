@@ -14,8 +14,7 @@ trainer:
       - 0
       - 16
       - 16
-  unfreeze_epoch: 70
-
+  unfreeze_epoch: 90
   train_dataset_config:
     _target_: KaeggleDataset
     dataset_path: null
@@ -62,7 +61,7 @@ trainer:
     _target_: torch.optim.lr_scheduler.StepLR
     options:
       gamma: 0.5
-      step_size: 40
+      step_size: 30
   scheduler_step_with_value: False
   logging_config:
     checkpoint_path: checkpoints

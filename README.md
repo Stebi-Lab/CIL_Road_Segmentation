@@ -10,7 +10,6 @@ Requirements
 Installation
 ---------------
 ### For general installation
-Depending on your setup, you might have to run the setup.py script after every change in code (because of hydra!).
 
 If you want CUDA, first run this line otherwise skip
 ```
@@ -23,4 +22,28 @@ pip install -r requirements.txt
 python setup.py install
 ```
 
-## Baselines
+## User Guide
+
+
+### Data Download
+
+Download the zipped datafolder from [here TODO](https://duckduckgo.com), 
+unpack it and place it in the root folder of the project.
+
+### Running 
+
+🔴IMPORTANT❗🔴
+
+Although the train.py/fine_tune.py/test.py file are setup, they'll need changes.
+Our code relies on checkpoint paths which are unique and need to be set before each run❗ There are todos.
+
+Run in order:
+- train.py: no changes, trains UNet++ with encoder on the extended dataset
+- fine_tune.py: set checkpoint path & number, fine_tune on Kaeggle dataset
+- test.py: set checkpoint path & number, produces submission.csv
+
+These python files must be run from the root directory for the relative paths to be correct!
+
+
+
+

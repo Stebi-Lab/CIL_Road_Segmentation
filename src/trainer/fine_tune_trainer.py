@@ -35,6 +35,7 @@ class TuneTrainer(BaseTorchTrainer):
         self.clip_gradients = config["clip_gradients"] if "clip_gradients" in config.keys() and config[
             "clip_gradients"] is not None else False
         super().__init__(config)
+        torch.manual_seed(self.torch_seed)
         self.name = self.name + "_tuned"
         self.criterion = nn.BCEWithLogitsLoss()
 
@@ -57,12 +58,11 @@ class TuneTrainer(BaseTorchTrainer):
         checkpoint = torch.load(checkpoint_path, map_location=self.device)
         self.model.load_state_dict(checkpoint["model"])
         self.model.to(self.device)
-        if "optimizer" in checkpoint:
-            if load_optimizer_and_scheduler:
-                self.optimizer.load_state_dict(checkpoint["optimizer"])
+        # if "optimizer" in checkpoint:
+        #     if load_optimizer_and_scheduler:
+        #         self.optimizer.load_state_dict(checkpoint["optimizer"])
 
     def get_loss(self, x, targets):
-        # Ensure the target has the same shape as output
         # Note: If target is of shape [batchsize, x, y], it needs to be unsqueezed to match [batchsize, 1, x, y]
         if targets.dim() == 3:
             targets = targets.unsqueeze(1)
@@ -75,7 +75,6 @@ class TuneTrainer(BaseTorchTrainer):
 
     def infer(self, inputs):
         """  
-        ## Anuj use in testing // done
         inputs: input satellite images in dataset
         binary_predictions: the predictions binarized to a tensor with 0,1 values. 
         """
@@ -84,8 +83,6 @@ class TuneTrainer(BaseTorchTrainer):
             if predictions.shape[-1] == 104:
                 predictions = F.interpolate(predictions, size=(416, 416), mode='bilinear', align_corners=False)
 
-            # print('predictions type', type(predictions)) ## <class 'torch.Tensor'>
-            # print('predictions shape', predictions.shape) ## torch.Size([batch, 1, 400, 400])
             binary_predictions = (predictions > 0).float()
 
             return binary_predictions
@@ -122,8 +119,6 @@ class TuneTrainer(BaseTorchTrainer):
         current_lr = self.scheduler.get_last_lr()
         with tqdm(self.train_dataloader) as pbar:
             for (_, inputs, labels) in pbar:
-                # inputs.to(self.device)
-                # labels.to(self.device)
 
                 pbar.set_description(f"Epoch {epoch + 1}/{self.epochs}")
 
@@ -136,9 +131,6 @@ class TuneTrainer(BaseTorchTrainer):
 
                 self.log_step(metrics)
 
-                # if self.visualize_output:
-                #     output["prev_batch"].append(inputs.detach().cpu().numpy())
-                #     output["post_batch"].append(out.detach().cpu().numpy())
                 output["total_metrics"].append(metrics)
                 output["total_loss"].append(loss)
                 with torch.no_grad():
@@ -162,8 +154,7 @@ class TuneTrainer(BaseTorchTrainer):
             if len(self.val_dataloader) > 0:
                 with tqdm(self.val_dataloader) as pbar:
                     for idx, inputs, labels in pbar:
-                        # print()
-                        # print(idx)
+
                         pbar.set_description(f"Epoch {epoch + 1}/{self.epochs} Validation")
 
                         if self.half_precision:
@@ -173,9 +164,6 @@ class TuneTrainer(BaseTorchTrainer):
                             out_dict = self.val_func(inputs, labels)
                         loss, metrics = out_dict["loss"], out_dict["metrics"]
 
-                        # if self.visualize_output:
-                        #     output["prev_batch"].append(inputs.detach().cpu().numpy())
-                        #     output["post_batch"].append(out.detach().cpu().numpy())
                         output["total_metrics"].append(metrics)
                         output["total_loss"].append(loss)
                         output["loss"] = torch.mean(torch.stack(output["total_loss"]))

@@ -9,15 +9,16 @@ from src.utils.utils import find_file
 from absl import app, flags
 from mask_to_submission import main as mask_to_submission_main
 
-base_data_path = "data"  # dir where the train/val/test data is stored
-base_configs_path = "configs"  # dir where the configuration .yaml is stored
-checkpoints_path = "checkpoints/2024-07-26-00-56-19_Combined_MLP/checkpoints"  # dir where the checkpoint .pt is stored
+base_data_path = "data"
+base_configs_path = "configs"
+checkpoints_path = "checkpoints/2024-07-28-15-00-03_Combined_MLP/checkpoints"  # TODO: input correct checkpoint path to test
 
 if __name__ == "__main__":
-    dataset = 'kaeggle'
+    dataset = 'kaegglePure'
     dataset_path = "{}/{}".format(base_data_path, dataset)
 
-    checkpoint_number = 20
+    # TODO: Choose the best checkpoint
+    checkpoint_number = 30
     checkpoints_path = "{}/{}".format(checkpoints_path, checkpoint_number)
     config_path = find_file(checkpoints_path, ".yaml")
     pretrained_path = find_file(checkpoints_path, ".pt")
