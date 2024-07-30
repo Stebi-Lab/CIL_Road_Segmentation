@@ -43,6 +43,8 @@ Run in order:
 
 These python files must be run from the root directory for the relative paths to be correct!
 
+#### Different Models
 
+Other models can be run by changing the provided config yaml in train.py or by providing the corresponding checkpoint path in fine_tune.py/test.py. Without deeper project knowledge we don't advice doing so, as it may require additional model specific changes in the running script!
 
 
