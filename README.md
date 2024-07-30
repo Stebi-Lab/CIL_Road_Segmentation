@@ -35,12 +35,12 @@ unpack it and place it in the root folder of the project.
 🔴IMPORTANT❗🔴
 
 Although the train.py/fine_tune.py/test.py file are setup, they'll need changes.
-Our code relies on checkpoint paths which are unique and need to be set before each run❗ There are todos.
+Our code relies on checkpoint paths generated from the training procedure. These paths are unique and need to be set before each run❗ They are marked as `TODO` in the code. We provide specific instructions below.
 
 Run in order:
-- train.py: no changes, trains UNet++ with encoder on the extended dataset
-- fine_tune.py: set checkpoint path & number, fine_tune on Kaeggle dataset
-- test.py: set checkpoint path & number, produces submission.csv
+- `train.py`: no changes needed, trains UNet++ with encoder on the extended dataset available from the above link.
+- `fine_tune.py`: set checkpoint path & number, fine_tune on Kaggle dataset
+- `test.py`: set checkpoint path & number, produces submission.csv
 
 These python files must be run from the root directory for the relative paths to be correct!
 
