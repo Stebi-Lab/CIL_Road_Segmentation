@@ -27,7 +27,7 @@ python setup.py install
 
 ### Data Download
 
-Download the zipped datafolder from [here TODO](https://drive.google.com/file/d/1pQX9PVbFvTrSGp8py4prKIGSd-mY5GBT/view), 
+Download the zipped datafolder from [here](https://drive.google.com/file/d/1Arzutq5zARJsXN95as67BnT1NyLjA7wx/view?usp=sharing), 
 unpack it and place it in the root folder of the project.
 
 ### Running 
