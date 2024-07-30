@@ -34,8 +34,7 @@ unpack it and place it in the root folder of the project.
 
 🔴IMPORTANT❗🔴
 
-Although the train.py/fine_tune.py/test.py file are setup, they'll need changes.
-Our code relies on checkpoint paths generated from the training procedure. These paths are unique and need to be set before each run❗ They are marked as `TODO` in the code. We provide specific instructions below.
+Although the train.py/fine_tune.py/test.py file are setup, a few manual changes are needed. The training procedure can be run straight out of the box. The fine-tuning and testing code relies on checkpoint paths generated from the training procedure. These paths are unique and need to be set before each run❗ They are marked as `TODO` in the code. We provide specific instructions below.
 
 Run in order:
 - `train.py`: no changes needed, trains UNet++ with encoder on the extended dataset available from the above link.
