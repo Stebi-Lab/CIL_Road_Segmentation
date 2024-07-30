@@ -45,6 +45,5 @@ These python files must be run from the root directory for the relative paths to
 
 #### Different Models
 
-Other models can be run by changing the provided config yaml in train.py or by providing the corresponding checkpoint path in fine_tune.py/test.py. Without deeper project knowledge we don't advice doing so, as it may require additional model specific changes in the running script!
-
+The above configuration runs our best model staight out-of-the-box. We have developed configurable code, such that all other model configurations can be run by adjusting the provided config yaml in `train.py` and by providing the corresponding checkpoint path in `fine_tune.py` and `test.py`. Caution is needed as running the other configurations requires precise instructions in the config files. 
 
