@@ -47,3 +47,7 @@ These python files must be run from the root directory for the relative paths to
 
 The above configuration runs our best model staight out-of-the-box. We have developed configurable code, such that all other model configurations can be run by adjusting the provided config yaml in `train.py` and by providing the corresponding checkpoint path in `fine_tune.py` and `test.py`. Caution is needed as running the other configurations requires precise changes in the running script. 
 
+=======
+# CIL_Road_Segmentation
+Semester Project competition. Road segmentation task with Machine learning methods.
+
